@@ -172,9 +172,9 @@
 
 #elif ENABLED(FSMC_GRAPHICAL_TFT)
 
-  // Unspecified 320x240 TFT pre-initialized by built-in bootloader
+  // Unspecified ?x? TFT pre-initialized by built-in bootloader
 
-  #define U8G_CLASS U8GLIB_TFT_320X240_UPSCALE_FROM_128X64
+  #define U8G_CLASS U8GLIB_TFT_AUTO_UPSCALE_FROM_128X64
   #define U8G_PARAM FSMC_CS_PIN, FSMC_RS_PIN
 
 #else
@@ -196,20 +196,35 @@
   #endif
 #endif
 
+// LCD_FULL_PIXEL_WIDTH =
+// LCD_PIXEL_OFFSET_X + (LCD_PIXEL_WIDTH * 2) + LCD_PIXEL_OFFSET_X
+#if ENABLED(FSMC_GRAPHICAL_TFT)
+  #ifndef LCD_FULL_PIXEL_WIDTH
+		#define LCD_FULL_PIXEL_WIDTH  128
+  #endif
+  #ifndef LCD_FULL_PIXEL_HEIGHT
+		#define LCD_FULL_PIXEL_HEIGHT 64
+  #endif
+
+  #define FSMCUPSCALE (LCD_FULL_PIXEL_WIDTH/128)
+
+  #if ENABLED(TOUCH_BUTTONS)
+    #define LCD_PIXEL_HEIGHT (FSMCUPSCALE * (64 + 20))
+    #define LCD_PIXEL_OFFSET_Y ((LCD_FULL_PIXEL_HEIGHT - LCD_PIXEL_HEIGHT)/3)
+  #else
+	#define LCD_PIXEL_HEIGHT (FSMCUPSCALE * (64))
+  	#define LCD_PIXEL_OFFSET_Y ((LCD_FULL_PIXEL_HEIGHT - LCD_PIXEL_HEIGHT)/2)
+  #endif
+
+  #define LCD_PIXEL_WIDTH  (FSMCUPSCALE * 128)
+  #define LCD_PIXEL_OFFSET_X ((LCD_FULL_PIXEL_WIDTH - LCD_PIXEL_WIDTH)/2)
+#endif
+
 #ifndef LCD_PIXEL_WIDTH
   #define LCD_PIXEL_WIDTH 128
 #endif
 #ifndef LCD_PIXEL_HEIGHT
   #define LCD_PIXEL_HEIGHT 64
-#endif
-
-// LCD_FULL_PIXEL_WIDTH =
-// LCD_PIXEL_OFFSET_X + (LCD_PIXEL_WIDTH * 2) + LCD_PIXEL_OFFSET_X
-#if ENABLED(FSMC_GRAPHICAL_TFT)
-  #define LCD_FULL_PIXEL_WIDTH  320
-  #define LCD_PIXEL_OFFSET_X    32
-  #define LCD_FULL_PIXEL_HEIGHT 240
-  #define LCD_PIXEL_OFFSET_Y    32
 #endif
 
 // For selective rendering within a Y range
