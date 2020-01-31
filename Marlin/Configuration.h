@@ -138,9 +138,7 @@
 //#define BLUETOOTH
 
 // Choose the name from boards.h that matches your setup
-#ifndef MOTHERBOARD
-  #define MOTHERBOARD BOARD_MKS_ROBIN_NANO
-#endif
+#define MOTHERBOARD BOARD_MKS_ROBIN_NANO
 
 // Name displayed in the LCD "Ready" message and Info menu
 #define CUSTOM_MACHINE_NAME "Sapphire Plus"
@@ -2099,8 +2097,12 @@
 // FSMC display (MKS Robin, Alfawise U20, JGAurora A5S, REXYZ A1, etc.)
 //
 #define FSMC_GRAPHICAL_TFT
-#define LCD_PIXEL_WIDTH 480
-#define LCD_PIXEL_HEIGHT 320
+#define LCD_USE_DMA_FSMC
+#define FSMC_DMA_DEV DMA2
+#define FSMC_DMA_CHANNEL DMA_CH5
+
+#define LCD_FULL_PIXEL_WIDTH 480
+#define LCD_FULL_PIXEL_HEIGHT 320
 
 //=============================================================================
 //============================  Other Controllers  ============================

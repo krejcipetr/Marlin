@@ -172,10 +172,10 @@
 
 #elif ENABLED(FSMC_GRAPHICAL_TFT)
 
-  // Unspecified ?x? TFT pre-initialized by built-in bootloader
+// Unspecified ?x? TFT pre-initialized by built-in bootloader
 
-  #define U8G_CLASS U8GLIB_TFT_AUTO_UPSCALE_FROM_128X64
-  #define U8G_PARAM FSMC_CS_PIN, FSMC_RS_PIN
+#define U8G_CLASS U8GLIB_TFT_AUTO_UPSCALE_FROM_128X64
+#define U8G_PARAM FSMC_CS_PIN, FSMC_RS_PIN
 
 #else
 
@@ -196,35 +196,28 @@
   #endif
 #endif
 
+#ifndef LCD_PIXEL_WIDTH
+	#define LCD_PIXEL_WIDTH 128
+#endif
+#ifndef LCD_PIXEL_HEIGHT
+	#define LCD_PIXEL_HEIGHT 64
+#endif
+
 // LCD_FULL_PIXEL_WIDTH =
 // LCD_PIXEL_OFFSET_X + (LCD_PIXEL_WIDTH * 2) + LCD_PIXEL_OFFSET_X
 #if ENABLED(FSMC_GRAPHICAL_TFT)
-  #ifndef LCD_FULL_PIXEL_WIDTH
-		#define LCD_FULL_PIXEL_WIDTH  128
-  #endif
-  #ifndef LCD_FULL_PIXEL_HEIGHT
-		#define LCD_FULL_PIXEL_HEIGHT 64
-  #endif
-
-  #define FSMCUPSCALE (LCD_FULL_PIXEL_WIDTH/128)
-
-  #if ENABLED(TOUCH_BUTTONS)
-    #define LCD_PIXEL_HEIGHT (FSMCUPSCALE * (64 + 20))
-    #define LCD_PIXEL_OFFSET_Y ((LCD_FULL_PIXEL_HEIGHT - LCD_PIXEL_HEIGHT)/3)
-  #else
-	#define LCD_PIXEL_HEIGHT (FSMCUPSCALE * (64))
-  	#define LCD_PIXEL_OFFSET_Y ((LCD_FULL_PIXEL_HEIGHT - LCD_PIXEL_HEIGHT)/2)
-  #endif
-
-  #define LCD_PIXEL_WIDTH  (FSMCUPSCALE * 128)
-  #define LCD_PIXEL_OFFSET_X ((LCD_FULL_PIXEL_WIDTH - LCD_PIXEL_WIDTH)/2)
-#endif
-
-#ifndef LCD_PIXEL_WIDTH
-  #define LCD_PIXEL_WIDTH 128
-#endif
-#ifndef LCD_PIXEL_HEIGHT
-  #define LCD_PIXEL_HEIGHT 64
+	#ifndef LCD_FULL_PIXEL_WIDTH
+		#define LCD_FULL_PIXEL_WIDTH  320
+	#endif
+	#ifndef LCD_FULL_PIXEL_WIDTH
+		#define LCD_PIXEL_OFFSET_X    32
+	#endif
+	#ifndef LCD_FULL_PIXEL_HEIGHT
+		#define LCD_FULL_PIXEL_HEIGHT 240
+	#endif
+	#ifndef LCD_FULL_PIXEL_WIDTH
+		#define LCD_PIXEL_OFFSET_Y    32
+	#endif
 #endif
 
 // For selective rendering within a Y range
@@ -234,8 +227,8 @@
 
 // Only Western languages support big / small fonts
 #if DISABLED(DISPLAY_CHARSET_ISO10646_1)
-  #undef USE_BIG_EDIT_FONT
-  #undef USE_SMALL_INFOFONT
+#undef USE_BIG_EDIT_FONT
+#undef USE_SMALL_INFOFONT
 #endif
 
 #define MENU_FONT_NAME    ISO10646_1_5x7
@@ -250,10 +243,10 @@
   #define EDIT_FONT_ASCENT  10
   #define EDIT_FONT_DESCENT  3
 #else
-  #define EDIT_FONT_NAME    MENU_FONT_NAME
-  #define EDIT_FONT_WIDTH   MENU_FONT_WIDTH
-  #define EDIT_FONT_ASCENT  MENU_FONT_ASCENT
-  #define EDIT_FONT_DESCENT MENU_FONT_DESCENT
+#define EDIT_FONT_NAME    MENU_FONT_NAME
+#define EDIT_FONT_WIDTH   MENU_FONT_WIDTH
+#define EDIT_FONT_ASCENT  MENU_FONT_ASCENT
+#define EDIT_FONT_DESCENT MENU_FONT_DESCENT
 #endif
 #define EDIT_FONT_HEIGHT (EDIT_FONT_ASCENT + EDIT_FONT_DESCENT)
 
@@ -262,7 +255,7 @@
   extern const u8g_fntpgm_uint8_t u8g_font_6x9[];
   #define INFO_FONT_ASCENT 7
 #else
-  #define INFO_FONT_ASCENT 8
+#define INFO_FONT_ASCENT 8
 #endif
 #define INFO_FONT_DESCENT 2
 #define INFO_FONT_HEIGHT (INFO_FONT_ASCENT + INFO_FONT_DESCENT)

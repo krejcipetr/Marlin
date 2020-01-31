@@ -73,21 +73,37 @@
   extern void LCD_IO_WriteMultiple(uint16_t color, uint32_t count);
 #endif
 
-#define WIDTH LCD_PIXEL_WIDTH
-#define HEIGHT LCD_PIXEL_HEIGHT
 #define PAGE_HEIGHT 8
 
-#define X_LO LCD_PIXEL_OFFSET_X
-#define Y_LO LCD_PIXEL_OFFSET_Y
+#define FSMCUPSCALE (LCD_FULL_PIXEL_WIDTH/LCD_PIXEL_WIDTH)
+
+#if ENABLED(TOUCH_BUTTONS)
+  #define Y_LO ((LCD_FULL_PIXEL_HEIGHT - (FSMCUPSCALE * (LCD_PIXEL_HEIGHT + 20)))/3)
+#else
+  #define Y_LO ((LCD_FULL_PIXEL_HEIGHT - (FSMCUPSCALE * (LCD_PIXEL_HEIGHT + 0)))/2)
+#endif
+
+#define WIDTH  (FSMCUPSCALE * LCD_PIXEL_WIDTH)
+#define X_LO ((LCD_FULL_PIXEL_WIDTH - WIDTH)/2)
+
+#define HEIGHT (LCD_FULL_PIXEL_HEIGHT - 2 * Y_LO)
+
 #define X_HI (X_LO + WIDTH  - 1)
 #define Y_HI (Y_LO + HEIGHT - 1)
 
+#define FSMCUPSCALEQ (FSMCUPSCALE * FSMCUPSCALE)
+#define BUFFERSIZE (128*FSMCUPSCALEQ)
+
 #if ENABLED(TOUCH_BUTTONS)
-	#define BUTTON_SIZE_X 32
-	#define BUTTON_SIZE_Y 20
-	#define BUTTON_SPACE ((WIDTH-(WIDTH/BUTTON_SIZE_X) * BUTTON_SIZE_X)/4);
-	#define BUTTON_OFFSET_X 0
-	#define BUTTON_OFFSET_Y (64 * FSMCUPSCALE + LCD_PIXEL_OFFSET_Y) / FSMCUPSCALE
+	#define BUTTON_SIZE_X (32 * FSMCUPSCALE)
+	#define BUTTON_SIZE_Y (20 * FSMCUPSCALE)
+	#define BUTTON_SPACE ((WIDTH-(WIDTH/BUTTON_SIZE_X) * BUTTON_SIZE_X)/5)
+    #define BUTTON_WIDTH (2*BUTTON_SPACE + 4*BUTTON_SIZE_X)
+    #define BUTTON_HEIGHT (BUTTON_SIZE_Y)
+	#define BUTTON_X_LOW (X_LO + BUTTON_SPACE)
+	#define BUTTON_Y_LOW (Y_LO + (64 * FSMCUPSCALE) +Y_LO)
+	#define BUTTON_X_HI (BUTTON_X_LOW + WIDTH - BUTTON_SPACE - 1)
+	#define BUTTON_Y_HI (BUTTON_Y_LOW + BUTTON_SIZE_Y - 1)
 #endif
 
 // see https://ee-programming-notepad.blogspot.com/2016/10/16-bit-color-generator-picker.html
@@ -230,10 +246,10 @@ static void setWindow_none(u8g_t *u8g, u8g_dev_t *dev, uint16_t Xmin, uint16_t Y
 void (*setWindow)(u8g_t *u8g, u8g_dev_t *dev, uint16_t Xmin, uint16_t Ymin, uint16_t Xmax, uint16_t Ymax) = setWindow_none;
 
 void setWindowTranslate(u8g_t *u8g, u8g_dev_t *dev, uint16_t Xmin, uint16_t Ymin, uint16_t Xmax, uint16_t Ymax) {
-	Xmin = X_LO + Xmin * FSMCUPSCALE;
+	/*Xmin = X_LO + Xmin * FSMCUPSCALE;
 	Ymin = Y_LO + Ymin * FSMCUPSCALE;
 	Xmax = X_LO + Xmax * FSMCUPSCALE;
-	Ymax = Y_LO + Ymax * FSMCUPSCALE;
+	Ymax = Y_LO + Ymax * FSMCUPSCALE;*/
 
 	setWindow( u8g, dev, Xmin, Ymin, Xmax, Ymax);
 }
@@ -398,6 +414,17 @@ static const uint16_t ili9341_init[] = {
   ESC_END
 };
 
+static bool preinit = true;
+static uint8_t page;
+
+#ifdef LCD_USE_DMA_FSMC
+  	static uint16_t bufferA[BUFFERSIZE], bufferB[BUFFERSIZE];
+    static uint16_t* buffer = &bufferA[0];
+    bool allow_async = true;
+#else
+    static uint16_t buffer[BUFFERSIZE];
+#endif
+
 #if ENABLED(TOUCH_BUTTONS)
 
   static const uint8_t buttonD[] = {
@@ -543,23 +570,26 @@ static const uint16_t ili9341_init[] = {
     B01111111,B11111111,B11111111,B11111110,
   };
 
-  void drawImage(const uint8_t *data, u8g_t *u8g, u8g_dev_t *dev, uint16_t length, uint16_t height, uint16_t color) {
-    uint16_t buffer[ 128 * FSMCUPSCALE ];
-
+  void drawImage(const uint8_t *data, u8g_t *u8g, u8g_dev_t *dev, uint16_t width, uint16_t height, uint16_t color) {
     for (uint16_t i = 0; i < height; i++) {
       uint16_t k = 0;
-      for (uint16_t j = 0; j < length; j++) {
+      for (uint16_t j = 0; j < width; j++) {
         uint16_t v = TFT_MARLINBG_COLOR;
-        if (*(data + (i * (length >> 3) + (j >> 3))) & (0x80 >> (j & 7)))
+        if (*(data + (i * (width >> 3) + (j >> 3))) & (0x80 >> (j & 7)))
           v = color;
         else
           v = TFT_MARLINBG_COLOR;
-        for (uint l=0; l < FSMCUPSCALE; l++) {buffer[k++] = v;}
+          // x
+        for (int l=0; l<FSMCUPSCALE; l++ ) buffer[k++] = v;
       }
+      // y
+      for (int l=1; l<FSMCUPSCALE; l++ ) memcpy(&buffer[WIDTH*l], &buffer[0], WIDTH);
+
+
       #ifdef LCD_USE_DMA_FSMC
-          LCD_IO_WriteSequence(buffer, k);
+          LCD_IO_WriteSequence(buffer, width * FSMCUPSCALEQ);
       #else
-          u8g_WriteSequence(u8g, dev, k << 1, (uint8_t *)buffer);
+          u8g_WriteSequence(u8g, dev, width  * FSMCUPSCALEQ, (uint8_t *)buffer);
       #endif
     }
   }
@@ -572,18 +602,9 @@ inline void memset2(const void *ptr, uint16_t fill, size_t cnt) {
   for (size_t i = 0; i < cnt; i += 2) { *wptr = fill; wptr++; }
 }
 
-static bool preinit = true;
-static uint8_t page;
 
 uint8_t u8g_dev_tft_auto_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *arg) {
   u8g_pb_t *pb = (u8g_pb_t *)(dev->dev_mem);
-
-  static uint16_t bufferA[128 * FSMCUPSCALE* FSMCUPSCALE], bufferB[128 * FSMCUPSCALE * FSMCUPSCALE];
-
-  #ifdef LCD_USE_DMA_FSMC
-    uint16_t* buffer = &bufferA[0];
-    bool allow_async = true;
-  #endif
 
   switch (msg) {
     case U8G_DEV_MSG_INIT:
@@ -638,34 +659,36 @@ uint8_t u8g_dev_tft_auto_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint
       #ifdef LCD_USE_DMA_FSMC
         LCD_IO_WriteMultiple(TFT_MARLINBG_COLOR, LCD_FULL_PIXEL_WIDTH * LCD_FULL_PIXEL_HEIGHT);
       #else
-        memset2(buffer, TFT_MARLINBG_COLOR, FULL_);
-        for (uint16_t i = 0; i < HEIGHT; i++)
-        	u8g_WriteSequence(u8g, dev, WIDTH*FSMCUPSCALE*2, (uint8_t *)buffer);
+        memset2(buffer, TFT_MARLINBG_COLOR, LCD_FULL_PIXEL_WIDTH * LCD_FULL_PIXEL_HEIGHT  );
+       	u8g_WriteSequence(u8g, dev, ( LCD_FULL_PIXEL_WIDTH * LCD_FULL_PIXEL_HEIGHT ) << 1, (uint8_t *)buffer);
       #endif
 
       // bottom line and buttons
       #if ENABLED(TOUCH_BUTTONS)
 
-        setWindowTranslate(u8g, dev, 0, BUTTON_OFFSET_Y, 128, BUTTON_OFFSET_Y + BUTTON_SIZE_Y);
+        setWindowTranslate(u8g, dev, BUTTON_X_LOW, BUTTON_Y_LOW, BUTTON_X_HI, BUTTON_Y_HI);
         #ifdef LCD_USE_DMA_FSMC
-          LCD_IO_WriteMultiple(TFT_DISABLED_COLOR, WIDTH * BUTTON_SIZE_Y);
-          LCD_IO_WriteMultiple(TFT_DISABLED_COLOR, (128);
+          LCD_IO_WriteMultiple(TFT_DISABLED_COLOR, BUTTON_WIDTH * BUTTON_HEIGHT);
         #else
-          memset2(buffer, TFT_DISABLED_COLOR, 128 * FSMCUPSCALE * BUTTON_SIZE_Y * );
-            u8g_WriteSequence(u8g, dev, 128 * FSMCUPSCALE * FSMCUPSCALE* 2, (uint8_t *)buffer);
+          	memset2(buffer, TFT_DISABLED_COLOR, BUTTON_WIDTH * BUTTON_HEIGHT );
+            u8g_WriteSequence(u8g, dev, (BUTTON_WIDTH * BUTTON_HEIGHT) << 1, (uint8_t *)buffer);
         #endif
 
-        setWindowTranslate(u8g, dev, 0*BUTTON_SIZE_X+0*BUTTON_SPACE, BUTTON_OFFSET_Y, 1*BUTTON_SIZE_X+0*BUTTON_SPACE, BUTTON_OFFSET_Y+BUTTON_SIZE_Y);
-        drawImage(buttonD, u8g, dev, BUTTON_SIZE_X, BUTTON_SIZE_Y, TFT_BTCANCEL_COLOR);
+	    #define O 0
+        setWindowTranslate(u8g, dev, BUTTON_X_LOW +  O * (BUTTON_SIZE_X+BUTTON_SPACE), BUTTON_Y_LOW, O * (BUTTON_SIZE_X+BUTTON_SPACE) + BUTTON_SIZE_X, BUTTON_Y_HI);
+        drawImage(buttonD, u8g, dev, 32, 20, TFT_BTCANCEL_COLOR);
 
-        setWindowTranslate(u8g, dev, 1*BUTTON_SIZE_X+1*BUTTON_SPACE, BUTTON_OFFSET_Y, 2*BUTTON_SIZE_X+1*BUTTON_SPACE, BUTTON_OFFSET_Y+BUTTON_SIZE_Y);
-        drawImage(buttonA, u8g, dev, BUTTON_SIZE_X, BUTTON_SIZE_Y, TFT_BTARROWS_COLOR);
+		#define O 1
+        setWindowTranslate(u8g, dev, BUTTON_X_LOW +  O * (BUTTON_SIZE_X+BUTTON_SPACE), BUTTON_Y_LOW, O * (BUTTON_SIZE_X+BUTTON_SPACE) + BUTTON_SIZE_X, BUTTON_Y_HI);
+        drawImage(buttonA, u8g, dev, 32, 20, TFT_BTARROWS_COLOR);
 
-        setWindowTranslate(u8g, dev, 2*BUTTON_SIZE_X+2*BUTTON_SPACE, BUTTON_OFFSET_Y, 3*BUTTON_SIZE_X+2*BUTTON_SPACE, BUTTON_OFFSET_Y+BUTTON_SIZE_Y);
-        drawImage(buttonB, u8g, dev, BUTTON_SIZE_X, BUTTON_SIZE_Y, TFT_BTARROWS_COLOR);
+		#define O 2
+        setWindowTranslate(u8g, dev, BUTTON_X_LOW +  O * (BUTTON_SIZE_X+BUTTON_SPACE), BUTTON_Y_LOW, O * (BUTTON_SIZE_X+BUTTON_SPACE) + BUTTON_SIZE_X, BUTTON_Y_HI);
+        drawImage(buttonB, u8g, dev, 32, 20, TFT_BTARROWS_COLOR);
 
-        setWindowTranslate(u8g, dev, 3*BUTTON_SIZE_X+3*BUTTON_SPACE, BUTTON_OFFSET_Y, 4*BUTTON_SIZE_X+3*BUTTON_SPACE, BUTTON_OFFSET_Y+BUTTON_SIZE_Y);
-        drawImage(buttonC, u8g, dev, BUTTON_SIZE_X, BUTTON_SIZE_Y, TFT_BTOKMENU_COLOR);
+		#define O 3
+        setWindowTranslate(u8g, dev, BUTTON_X_LOW +  O * (BUTTON_SIZE_X+BUTTON_SPACE), BUTTON_Y_LOW, O * (BUTTON_SIZE_X+BUTTON_SPACE) + BUTTON_SIZE_X, BUTTON_Y_HI);
+        drawImage(buttonC, u8g, dev, 32, 20, TFT_BTOKMENU_COLOR);
       #endif // TOUCH_BUTTONS
 
       return 0;
@@ -678,7 +701,7 @@ uint8_t u8g_dev_tft_auto_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint
       break;
 
     case U8G_DEV_MSG_PAGE_NEXT:
-      if (++page > (HEIGHT / PAGE_HEIGHT)) return 1;
+      if (++page > (LCD_PIXEL_HEIGHT / PAGE_HEIGHT)) return 1;
 
       for (uint8_t y = 0; y < PAGE_HEIGHT; y++) {
         uint32_t k = 0;
@@ -690,22 +713,22 @@ uint8_t u8g_dev_tft_auto_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint
           const uint16_t c = TEST(b, y) ? TFT_MARLINUI_COLOR : TFT_MARLINBG_COLOR;
           // x
           for (int l=0; l<FSMCUPSCALE; l++ ) buffer[k++] = c;
-          // y
-          for (int l=0; l<FSMCUPSCALE; l++ ) memcpy(&buffer[128*FSMCUPSCALE*(l+1)], &buffer[0], 128*FSMCUPSCALE);
-
         }
+        // y
+        for (int l=1; l<=FSMCUPSCALE; l++ ) memcpy(&buffer[WIDTH*l], &buffer[0], WIDTH);
         #ifdef LCD_USE_DMA_FSMC
           if (allow_async) {
             if (y > 0 || page > 1) LCD_IO_WaitSequence_Async();
             if (y == 7 && page == PAGE_HEIGHT)
-              LCD_IO_WriteSequence(buffer, pb->width);
+              LCD_IO_WriteSequence(buffer, BUFFERSIZE);
             else
-              LCD_IO_WriteSequence_Async(buffer, pb->width);
+              LCD_IO_WriteSequence_Async(buffer, BUFFERSIZE);
           }
           else
-            LCD_IO_WriteSequence(buffer, pb->width);
+            LCD_IO_WriteSequence(buffer, BUFFERSIZE);
         #else
-            u8g_WriteSequence(u8g, dev, 128 * FSMCUPSCALE * FSMCUPSCALE * 2, (uint8_t *)buffer);
+            u8g_WriteSequence(u8g, dev, ( BUFFERSIZE ) << 1, (uint8_t *)buffer);
+
         #endif
       }
       break;
@@ -720,6 +743,6 @@ uint8_t u8g_dev_tft_auto_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint
   return u8g_dev_pb8v1_base_fn(u8g, dev, msg, arg);
 }
 
-U8G_PB_DEV(u8g_dev_tft_auto_upscale_from_128x64, WIDTH, HEIGHT, PAGE_HEIGHT, u8g_dev_tft_auto_upscale_from_128x64_fn, U8G_COM_HAL_FSMC_FN);
+U8G_PB_DEV(u8g_dev_tft_auto_upscale_from_128x64, LCD_PIXEL_WIDTH, LCD_PIXEL_HEIGHT, PAGE_HEIGHT, u8g_dev_tft_auto_upscale_from_128x64_fn, U8G_COM_HAL_FSMC_FN);
 
 #endif // HAS_GRAPHICAL_LCD && FSMC_CS
