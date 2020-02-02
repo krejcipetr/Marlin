@@ -209,13 +209,13 @@
 	#ifndef LCD_FULL_PIXEL_WIDTH
 		#define LCD_FULL_PIXEL_WIDTH  320
 	#endif
-	#ifndef LCD_FULL_PIXEL_WIDTH
+	#ifndef LCD_PIXEL_OFFSET_X
 		#define LCD_PIXEL_OFFSET_X    32
 	#endif
 	#ifndef LCD_FULL_PIXEL_HEIGHT
 		#define LCD_FULL_PIXEL_HEIGHT 240
 	#endif
-	#ifndef LCD_FULL_PIXEL_WIDTH
+	#ifndef LCD_PIXEL_OFFSET_Y
 		#define LCD_PIXEL_OFFSET_Y    32
 	#endif
 #endif
