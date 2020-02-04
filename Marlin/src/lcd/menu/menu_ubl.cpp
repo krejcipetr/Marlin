@@ -355,7 +355,7 @@ void _lcd_ubl_build_mesh() {
  * UBL Load Mesh Command
  */
 void _lcd_ubl_load_mesh_cmd() {
-  char ubl_lcd_gcode[25];
+  char ubl_lcd_gcode[32];
   sprintf_P(ubl_lcd_gcode, PSTR("G29 L%i"), ubl_storage_slot);
   lcd_enqueue_one_now(ubl_lcd_gcode);
   sprintf_P(ubl_lcd_gcode, GET_TEXT(MSG_MESH_LOADED), ubl_storage_slot);
@@ -366,7 +366,7 @@ void _lcd_ubl_load_mesh_cmd() {
  * UBL Save Mesh Command
  */
 void _lcd_ubl_save_mesh_cmd() {
-  char ubl_lcd_gcode[25];
+  char ubl_lcd_gcode[32];
   sprintf_P(ubl_lcd_gcode, PSTR("G29 S%i"), ubl_storage_slot);
   lcd_enqueue_one_now(ubl_lcd_gcode);
   sprintf_P(ubl_lcd_gcode, GET_TEXT(MSG_MESH_SAVED), ubl_storage_slot);
