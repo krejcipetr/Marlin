@@ -693,7 +693,7 @@ uint8_t u8g_dev_tft_auto_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint
         drawImage(buttonC, u8g, dev, 32, 20, TFT_BTOKMENU_COLOR);
       #endif // TOUCH_BUTTONS
 
-      break;
+      break; 
 
     case U8G_DEV_MSG_STOP: preinit = true; break;
 
