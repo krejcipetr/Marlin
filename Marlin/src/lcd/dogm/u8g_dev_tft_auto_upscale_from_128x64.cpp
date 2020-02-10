@@ -413,6 +413,7 @@ static uint8_t page;
 
 #ifndef FSMC_NOASYNC
     static uint16_t buffer[2][BUFFERSIZE];
+    static uint8_t *bufferOriginal;
 #else
     static uint16_t buffer[1][BUFFERSIZE];
 #endif
@@ -705,25 +706,25 @@ uint8_t u8g_dev_tft_auto_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint
     case U8G_DEV_MSG_PAGE_NEXT:
       if (++page > (LCD_PIXEL_HEIGHT / PAGE_HEIGHT)) return 1;
 
+      // Make copy
+      bufferOriginal =  (uint8_t *)pb->buf;
+
       for (uint8_t y = 0; y < PAGE_HEIGHT; y++) {
         uint k = 0;
 
         bufferDMA = buffer[y & 1];
 
         for (uint16_t i = 0; i < (uint32_t)pb->width; i++) {
-          const uint8_t b = *(((uint8_t *)pb->buf) + i);
-          const uint16_t c = TEST(b, y) ? TFT_MARLINUI_COLOR : TFT_MARLINBG_COLOR;
+          const uint16_t c = TEST(bufferOriginal[i], y) ? TFT_MARLINUI_COLOR : TFT_MARLINBG_COLOR;
           // ->x
           for (uint l=0; l<FSMCUPSCALE; l++ ) bufferDMA[k++] = c;
         }
         // ->y
-        for (uint l=1; l<FSMCUPSCALE; l++ ) memcpy(&bufferDMA[k*l], bufferDMA, k * sizeof(uint16_t));
+        memcpy(&bufferDMA[k], bufferDMA,  k * sizeof(uint16_t) * (FSMCUPSCALE-1));
+
         #ifdef LCD_USE_DMA_FSMC
             #ifndef FSMC_NOASYNC
-                // Except first line on first page
-                if (y > 0 || page > 1) {
-                    LCD_IO_WaitSequence_Async();
-                }
+        		LCD_IO_WaitSequence_Async();
                 // Last line on last page
                 if (y == (PAGE_HEIGHT-1) && page == (LCD_PIXEL_HEIGHT / PAGE_HEIGHT) ) {
                     LCD_IO_WriteSequence(bufferDMA, k * FSMCUPSCALE);
