@@ -743,7 +743,7 @@
 #define DEFAULT_MINIMUMFEEDRATE       0.0     // minimum feedrate
 #define DEFAULT_MINTRAVELFEEDRATE     0.0
 
-#define HOME_AFTER_DEACTIVATE  // Require rehoming after steppers are deactivated
+//#define HOME_AFTER_DEACTIVATE  // Require rehoming after steppers are deactivated
 
 // Minimum time that a segment needs to take if the buffer is emptied
 #define DEFAULT_MINSEGMENTTIME        50000   // (ms)
@@ -985,7 +985,7 @@
 //#define LCD_TIMEOUT_TO_STATUS 15000
 
 // Add an 'M73' G-code to set the current percentage
-//#define LCD_SET_PROGRESS_MANUALLY
+#define LCD_SET_PROGRESS_MANUALLY
 
 // Show the E position (filament used) during printing
 #define LCD_SHOW_E_TOTAL
@@ -1445,7 +1445,7 @@
  *
  * Warning: Does not respect endstops!
  */
-#define BABYSTEPPING
+//#define BABYSTEPPING
 #if ENABLED(BABYSTEPPING)
   //#define INTEGRATED_BABYSTEPPING         // EXPERIMENTAL integration of babystepping into the Stepper ISR
   //#define BABYSTEP_WITHOUT_HOMING
@@ -1506,12 +1506,12 @@
  * Override if the automatically selected points are inadequate.
  */
 #if EITHER(AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_UBL)
-  //#define PROBE_PT_1_X 15
-  //#define PROBE_PT_1_Y 180
-  //#define PROBE_PT_2_X 15
-  //#define PROBE_PT_2_Y 20
-  //#define PROBE_PT_3_X 170
-  //#define PROBE_PT_3_Y 20
+  #define PROBE_PT_1_X 45
+  #define PROBE_PT_1_Y 255
+  #define PROBE_PT_2_X 45
+  #define PROBE_PT_2_Y 45
+  #define PROBE_PT_3_X 255
+  #define PROBE_PT_3_Y 45
 #endif
 
 /**
@@ -1532,18 +1532,18 @@
  * the probe to be unable to reach any points.
  */
 #if PROBE_SELECTED && !IS_KINEMATIC
-  //#define MIN_PROBE_EDGE_LEFT MIN_PROBE_EDGE
-  //#define MIN_PROBE_EDGE_RIGHT MIN_PROBE_EDGE
-  //#define MIN_PROBE_EDGE_FRONT MIN_PROBE_EDGE
-  //#define MIN_PROBE_EDGE_BACK MIN_PROBE_EDGE
+  //#define MIN_PROBE_EDGE_LEFT 45
+  //#define MIN_PROBE_EDGE_RIGHT 45
+  //#define MIN_PROBE_EDGE_FRONT 255
+  //#define MIN_PROBE_EDGE_BACK 255
 #endif
 
 #if EITHER(MESH_BED_LEVELING, AUTO_BED_LEVELING_UBL)
   // Override the mesh area if the automatic (max) area is too large
-  //#define MESH_MIN_X MESH_INSET
-  //#define MESH_MIN_Y MESH_INSET
-  //#define MESH_MAX_X X_BED_SIZE - (MESH_INSET)
-  //#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET)
+  //#define MESH_MIN_X 45
+  //#define MESH_MIN_Y 45
+  //#define MESH_MAX_X 255
+  //#define MESH_MAX_Y 255
 #endif
 
 /**
