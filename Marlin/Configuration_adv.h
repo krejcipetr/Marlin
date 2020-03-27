@@ -1505,12 +1505,12 @@
  * Override if the automatically selected points are inadequate.
  */
 #if EITHER(AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_UBL)
-  #define PROBE_PT_1_X 45
-  #define PROBE_PT_1_Y 255
-  #define PROBE_PT_2_X 45
-  #define PROBE_PT_2_Y 45
-  #define PROBE_PT_3_X 255
-  #define PROBE_PT_3_Y 45
+  #define PROBE_PT_1_X 150
+  #define PROBE_PT_1_Y 250
+  #define PROBE_PT_2_X 50
+  #define PROBE_PT_2_Y 50
+  #define PROBE_PT_3_X 250
+  #define PROBE_PT_3_Y 50
 #endif
 
 /**
@@ -1571,7 +1571,7 @@
  */
 #if HAS_BED_PROBE && TEMP_SENSOR_PROBE && TEMP_SENSOR_BED
   // Enable thermal first layer compensation using bed and probe temperatures
-  #define PROBE_TEMP_COMPENSATION
+  //#define PROBE_TEMP_COMPENSATION
 
   // Add additional compensation depending on hotend temperature
   // Note: this values cannot be calibrated and have to be set manually
@@ -1676,7 +1676,7 @@
  *
  * Override the default value based on the driver type set in Configuration.h.
  */
-#define MAXIMUM_STEPPER_RATE 5000000
+#define MAXIMUM_STEPPER_RATE 4000000
 
 // @section temperature
 

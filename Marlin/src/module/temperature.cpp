@@ -862,10 +862,10 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
           }
 
           work_pid[ee].Kd = work_pid[ee].Kd + PID_K2 * (PID_PARAM(Kd, ee) * (temp_dState[ee] - temp_hotend[ee].celsius) - work_pid[ee].Kd);
-          const float max_power_over_i_gain = float(PID_MAX) / PID_PARAM(Ki, ee)/100 - float(MIN_POWER);
+          const float max_power_over_i_gain = float(PID_MAX) / PID_PARAM(Ki, ee) - float(MIN_POWER);
           temp_iState[ee] = constrain(temp_iState[ee] + pid_error, 0, max_power_over_i_gain);
           work_pid[ee].Kp = PID_PARAM(Kp, ee) * pid_error;
-          work_pid[ee].Ki = PID_PARAM(Ki, ee)/100 * temp_iState[ee];
+          work_pid[ee].Ki = PID_PARAM(Ki, ee) * temp_iState[ee];
 
           pid_output = work_pid[ee].Kp + work_pid[ee].Ki + work_pid[ee].Kd + float(MIN_POWER);
 
@@ -958,7 +958,7 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
       static float temp_iState = 0, temp_dState = 0;
       static bool pid_reset = true;
       float pid_output = 0;
-      const float max_power_over_i_gain = float(MAX_BED_POWER) / temp_bed.pid.Ki/100 - float(MIN_BED_POWER),
+      const float max_power_over_i_gain = float(MAX_BED_POWER) / temp_bed.pid.Ki - float(MIN_BED_POWER),
                   pid_error = temp_bed.target - temp_bed.celsius;
 
       if (!temp_bed.target || pid_error < -(PID_FUNCTIONAL_RANGE)) {
@@ -979,7 +979,7 @@ void Temperature::min_temp_error(const heater_ind_t heater) {
         temp_iState = constrain(temp_iState + pid_error, 0, max_power_over_i_gain);
 
         work_pid.Kp = temp_bed.pid.Kp * pid_error;
-        work_pid.Ki = temp_bed.pid.Ki/100 * temp_iState;
+        work_pid.Ki = temp_bed.pid.Ki * temp_iState;
         work_pid.Kd = work_pid.Kd + PID_K2 * (temp_bed.pid.Kd * (temp_dState - temp_bed.celsius) - work_pid.Kd);
 
         temp_dState = temp_bed.celsius;
