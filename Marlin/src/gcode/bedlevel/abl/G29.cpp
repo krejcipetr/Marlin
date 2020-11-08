@@ -214,13 +214,13 @@ G29_TYPE GcodeSuite::G29() {
       ABL_VAR bool do_topography_map;
       ABL_VAR xy_uint8_t abl_grid_points;
     #else // Bilinear
-      constexpr xy_uint8_t abl_grid_points = { GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y };
+      xy_uint8_t abl_grid_points = { GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y };
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_LINEAR)
       ABL_VAR int abl_points;
     #else
-      int constexpr abl_points = GRID_MAX_POINTS;
+       int abl_points = GRID_MAX_POINTS;
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -301,6 +301,11 @@ G29_TYPE GcodeSuite::G29() {
         }
         G29_RETURN(false);
       } // parser.seen('W')
+        
+      abl_grid_points.set(
+        	parser.byteval('N', GRID_MAX_POINTS_X),
+	        parser.byteval('M', GRID_MAX_POINTS_Y));
+      abl_points = abl_grid_points.x * abl_grid_points.y;
 
     #else
 
@@ -372,12 +377,12 @@ G29_TYPE GcodeSuite::G29() {
       }
       else {
         probe_position_lf.set(
-          parser.seenval('L') ? RAW_X_POSITION(parser.value_linear_units()) : x_min,
-          parser.seenval('F') ? RAW_Y_POSITION(parser.value_linear_units()) : y_min
+          parser.seenval('L') ? _MAX(x_min, RAW_X_POSITION(parser.value_linear_units())) : x_min,
+          parser.seenval('F') ? _MAX(RAW_Y_POSITION(parser.value_linear_units()),y_min) : y_min
         );
         probe_position_rb.set(
-          parser.seenval('R') ? RAW_X_POSITION(parser.value_linear_units()) : x_max,
-          parser.seenval('B') ? RAW_Y_POSITION(parser.value_linear_units()) : y_max
+          parser.seenval('R') ? _MIN(RAW_X_POSITION(parser.value_linear_units()),x_max) : x_max,
+          parser.seenval('B') ? _MIN(RAW_Y_POSITION(parser.value_linear_units()),y_max) : y_max
         );
       }
 
@@ -419,7 +424,7 @@ G29_TYPE GcodeSuite::G29() {
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       if (TERN1(PROBE_MANUALLY, !no_action)
-        && (gridSpacing != bilinear_grid_spacing || probe_position_lf != bilinear_start)
+        && (gridSpacing != bilinear_grid_spacing || probe_position_lf != bilinear_start || bilinear_points != abl_grid_points )
       ) {
         // Reset grid to 0.0 or "not probed". (Also disables ABL)
         reset_bed_level();
@@ -427,6 +432,7 @@ G29_TYPE GcodeSuite::G29() {
         // Initialize a grid with the given dimensions
         bilinear_grid_spacing = gridSpacing;
         bilinear_start = probe_position_lf;
+		bilinear_points = abl_grid_points; 
 
         // Can't re-enable (on error) until the new grid is written
         abl_should_enable = false;

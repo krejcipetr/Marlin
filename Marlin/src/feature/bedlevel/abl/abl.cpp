@@ -36,6 +36,7 @@
 #endif
 
 xy_pos_t bilinear_grid_spacing, bilinear_start;
+xy_uint8_t bilinear_points;
 xy_float_t bilinear_grid_factor;
 bed_mesh_t z_values;
 
@@ -98,18 +99,18 @@ static void extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t
  */
 void extrapolate_unprobed_bed_level() {
   #ifdef HALF_IN_X
-    constexpr uint8_t ctrx2 = 0, xlen = GRID_MAX_POINTS_X - 1;
+     uint8_t ctrx2 = 0, xlen = bilinear_points.x - 1;
   #else
-    constexpr uint8_t ctrx1 = (GRID_MAX_POINTS_X - 1) / 2, // left-of-center
-                      ctrx2 = (GRID_MAX_POINTS_X) / 2,     // right-of-center
+     uint8_t ctrx1 = (bilinear_points.x - 1) / 2, // left-of-center
+                      ctrx2 = (bilinear_points.x) / 2,     // right-of-center
                       xlen = ctrx1;
   #endif
 
   #ifdef HALF_IN_Y
-    constexpr uint8_t ctry2 = 0, ylen = GRID_MAX_POINTS_Y - 1;
+     uint8_t ctry2 = 0, ylen = bilinear_points.y - 1;
   #else
-    constexpr uint8_t ctry1 = (GRID_MAX_POINTS_Y - 1) / 2, // top-of-center
-                      ctry2 = (GRID_MAX_POINTS_Y) / 2,     // bottom-of-center
+     uint8_t ctry1 = (bilinear_points.y - 1) / 2, // top-of-center
+                      ctry2 = (bilinear_points.y) / 2,     // bottom-of-center
                       ylen = ctry1;
   #endif
 
@@ -135,8 +136,11 @@ void extrapolate_unprobed_bed_level() {
 }
 
 void print_bilinear_leveling_grid() {
+  
   SERIAL_ECHOLNPGM("Bilinear Leveling Grid:");
-  print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 3,
+  SERIAL_ECHOLNPAIR("Leveled area: (",bilinear_start.x,",",bilinear_start.y,")->(",bilinear_start.x+bilinear_grid_spacing.x*(bilinear_points.x-1),",",bilinear_start.y+bilinear_grid_spacing.y*(bilinear_points.y-1),")");
+  SERIAL_ECHOLNPAIR("Points:",bilinear_points.x,",",bilinear_points.y);
+  print_2d_array(bilinear_points.x, bilinear_points.y, 3,
     [](const uint8_t ix, const uint8_t iy) { return z_values[ix][iy]; }
   );
 }
@@ -251,8 +255,8 @@ void refresh_bed_level() {
 #else
   #define ABL_BG_SPACING(A) bilinear_grid_spacing.A
   #define ABL_BG_FACTOR(A)  bilinear_grid_factor.A
-  #define ABL_BG_POINTS_X   GRID_MAX_POINTS_X
-  #define ABL_BG_POINTS_Y   GRID_MAX_POINTS_Y
+  #define ABL_BG_POINTS_X   bilinear_points.x
+  #define ABL_BG_POINTS_Y   bilinear_points.y
   #define ABL_BG_GRID(X,Y)  z_values[X][Y]
 #endif
 
