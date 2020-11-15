@@ -181,7 +181,7 @@ typedef struct { int16_t value, celsius; } temp_entry_t;
   #include "thermistor_1010.h"
 #endif
 #if ANY_THERMISTOR_IS(1047) // Pt1000 with 4k7 pullup
-  #include "thermistor_1047.h"
+  #include "thermistor_1047.h"/home/krejci/workspace
 #endif
 #if ANY_THERMISTOR_IS(998) // User-defined table 1
   #include "thermistor_998.h"
@@ -191,6 +191,9 @@ typedef struct { int16_t value, celsius; } temp_entry_t;
 #endif
 #if ANY_THERMISTOR_IS(1000) // Custom
   const temp_entry_t temptable_1000[] PROGMEM = { { 0, 0 } };
+#endif
+#if ANY_THERMISTOR_IS(400) // TEWA TT2-100KC3H-7,  4066K, RP = 4K7, manually created
+  #include "thermistor_400.h"
 #endif
 
 #define _TT_NAME(_N) temptable_ ## _N
