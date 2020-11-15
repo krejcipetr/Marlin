@@ -181,7 +181,7 @@ typedef struct { int16_t value, celsius; } temp_entry_t;
   #include "thermistor_1010.h"
 #endif
 #if ANY_THERMISTOR_IS(1047) // Pt1000 with 4k7 pullup
-  #include "thermistor_1047.h"/home/krejci/workspace
+  #include "thermistor_1047.h"
 #endif
 #if ANY_THERMISTOR_IS(998) // User-defined table 1
   #include "thermistor_998.h"
