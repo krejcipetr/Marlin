@@ -92,22 +92,22 @@
 // Heaters / Fans
 //
 #ifndef HEATER_0_PIN
-  #define HEATER_0_PIN                      PC3
+	#define HEATER_0_PIN                      PC3
 #endif
 #if HOTENDS == 1
   #ifndef FAN1_PIN
     #define FAN1_PIN                        PB0
   #endif
 #else
-  #ifndef HEATER_1_PIN
-    #define HEATER_1_PIN                    PB0
-  #endif
+	#ifndef HEATER_1_PIN
+		#define HEATER_1_PIN                PB0
+	#endif
 #endif
 #ifndef FAN_PIN
-  #define FAN_PIN                           PB1   // FAN
+	#define FAN_PIN                           PB1   // FAN
 #endif
 #ifndef HEATER_BED_PIN
-  #define HEATER_BED_PIN                    PA0
+	#define HEATER_BED_PIN                    PA0
 #endif
 
 //
@@ -119,28 +119,24 @@
 //
 // Misc. Functions
 //
-#if HAS_TFT_LVGL_UI
-  //#define MKSPWC
-  #ifdef MKSPWC
-    #define SUICIDE_PIN                     PB2   // Enable MKSPWC SUICIDE PIN
-    #define SUICIDE_PIN_INVERTING          false  // Enable MKSPWC PIN STATE
-    #define KILL_PIN                        PA2   // Enable MKSPWC DET PIN
-    #define KILL_PIN_STATE                  true  // Enable MKSPWC PIN STATE
-  #endif
 
-  #define MT_DET_1_PIN                      PA4   // LVGL UI FILAMENT RUNOUT1 PIN
-  #define MT_DET_2_PIN                      PE6   // LVGL UI FILAMENT RUNOUT2 PIN
-  #define MT_DET_PIN_INVERTING             false  // LVGL UI filament RUNOUT PIN STATE
-
-  #define WIFI_IO0_PIN                      PC13  // MKS ESP WIFI IO0 PIN
-  #define WIFI_IO1_PIN                      PC7   // MKS ESP WIFI IO1 PIN
-  #define WIFI_RESET_PIN                    PA5   // MKS ESP WIFI RESET PIN
-#else
-  //#define POWER_LOSS_PIN                  PA2   // PW_DET
-  //#define PS_ON_PIN                       PB2   // PW_OFF
-  #define FIL_RUNOUT_PIN                    PA4
-  #define FIL_RUNOUT2_PIN                   PE6
+#ifdef MKSPWC
+  #define SUICIDE_PIN                     PB2   // Enable MKSPWC SUICIDE PIN
+  #define SUICIDE_PIN_INVERTING          false  // Enable MKSPWC PIN STATE
+  #define KILL_PIN                        PA2   // Enable MKSPWC DET PIN
+  #define KILL_PIN_STATE                  HIGH  // Enable MKSPWC PIN STATE
 #endif
+
+#define MT_DET_1_PIN                      PA4   // LVGL UI FILAMENT RUNOUT1 PIN
+#define MT_DET_2_PIN                      PE6   // LVGL UI FILAMENT RUNOUT2 PIN
+#define MT_DET_PIN_INVERTING             false  // LVGL UI filament RUNOUT PIN STATE
+
+#define WIFI_IO0_PIN                      PC13  // MKS ESP WIFI IO0 PIN
+#define WIFI_IO1_PIN                      PC7   // MKS ESP WIFI IO1 PIN
+#define WIFI_RESET_PIN                    PA5   // MKS ESP WIFI RESET PIN
+
+#define FIL_RUNOUT_PIN                    PA4
+#define FIL_RUNOUT2_PIN                   PE6
 
 #define SERVO0_PIN                          PA8   // Enable BLTOUCH support
 
@@ -150,7 +146,7 @@
 // SD Card
 //
 #ifndef SDCARD_CONNECTION
-  #define SDCARD_CONNECTION              ONBOARD
+#define SDCARD_CONNECTION              ONBOARD
 #endif
 
 #define SDIO_SUPPORT
@@ -194,7 +190,7 @@
   #define TOUCH_BUTTONS_HW_SPI
   #define TOUCH_BUTTONS_HW_SPI_DEVICE          2
 
-  #define TFT_BUFFER_SIZE                  14400
+  #define TFT_BUFFER_SIZE                  4096
 #endif
 
 // XPT2046 Touch Screen calibration
@@ -241,9 +237,9 @@
 
 #define HAS_SPI_FLASH                          1
 #if HAS_SPI_FLASH
-  #define SPI_FLASH_SIZE               0x1000000  // 16MB
-  #define W25QXX_CS_PIN                     PB12
-  #define W25QXX_MOSI_PIN                   PB15
-  #define W25QXX_MISO_PIN                   PB14
-  #define W25QXX_SCK_PIN                    PB13
+#define SPI_FLASH_SIZE               0x1000000  // 16MB
+#define W25QXX_CS_PIN                     PB12
+#define W25QXX_MOSI_PIN                   PB15
+#define W25QXX_MISO_PIN                   PB14
+#define W25QXX_SCK_PIN                    PB13
 #endif
