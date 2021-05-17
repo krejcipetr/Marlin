@@ -546,7 +546,7 @@
  * When set to any value below 255, enables a form of PWM to the bed that acts like a divider
  * so don't use it unless you are OK with PWM on your bed. (See the comment on enabling PIDTEMPBED)
  */
-#define MAX_BED_POWER 200 // limits duty cycle to bed; 255=full current
+#define MAX_BED_POWER 255 // limits duty cycle to bed; 255=full current
 
 #if ENABLED(PIDTEMPBED)
   #define MIN_BED_POWER 0
@@ -559,11 +559,11 @@
 
 
  //AUTO80
- #define DEFAULT_bedKp 27.82
- #define DEFAULT_bedKi 4.63
- #define DEFAULT_bedKd 111.50
+ #define DEFAULT_bedKp 33.43
+ #define DEFAULT_bedKi 6.32
+ #define DEFAULT_bedKd 117.91
 
-  //120V 250W silicone heater into 4mm borosilicate (MendelMa/home/krejci/workspacex 1.5+)
+  //120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   //from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
   //#define DEFAULT_bedKp 10.00
   //#define DEFAULT_bedKi .023
@@ -1010,7 +1010,7 @@
  *     |    [-]    |
  *     O-- FRONT --+
  */
-#define NOZZLE_TO_PROBE_OFFSET { 0, -42, 0 }
+#define NOZZLE_TO_PROBE_OFFSET { 0, -40, 0 }
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
@@ -1023,7 +1023,7 @@
 #define Z_PROBE_SPEED_FAST 1200
 
 // Feedrate (mm/min) for the "accurate" probe of each point
-#define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 4)
+#define Z_PROBE_SPEED_SLOW (Z_PROBE_SPEED_FAST / 10)
 
 /**
  * Multiple Probing
@@ -1034,7 +1034,7 @@
  * A total of 2 does fast/slow probes with a weighted average.
  * A total of 3 or more adds more slow probes, taking the average.
  */
-#define MULTIPLE_PROBING 2
+#define MULTIPLE_PROBING 3
 //#define EXTRA_PROBING    1
 
 /**
@@ -1147,14 +1147,14 @@
 
 // The size of the print bed
 #define X_BED_SIZE 305
-#define Y_BED_SIZE 300
+#define Y_BED_SIZE 295
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
 #define X_MIN_POS -5
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
 #define X_MAX_POS 300
-#define Y_MAX_POS 300
+#define Y_MAX_POS 295
 #define Z_MAX_POS 300
 
 /**
@@ -1322,7 +1322,7 @@
     // Experimental Subdivision of the grid by Catmull-Rom method.
     // Synthesizes intermediate points to produce a more detailed mesh.
     //
-    //#define ABL_BILINEAR_SUBDIVISION
+    #define ABL_BILINEAR_SUBDIVISION
     #if ENABLED(ABL_BILINEAR_SUBDIVISION)
       // Number of subdivisions between probe points
       #define BILINEAR_SUBDIVISIONS 3
@@ -1378,7 +1378,7 @@
 #define LEVEL_BED_CORNERS
 
 #if ENABLED(LEVEL_BED_CORNERS)
-  #define LEVEL_CORNERS_INSET_LFRB { 25, 25, 25, 25 } // (mm) Left, Front, Right, Back insets
+  #define LEVEL_CORNERS_INSET_LFRB { 25	, 25, 25, 25 } // (mm) Left, Front, Right, Back insets
   #define LEVEL_CORNERS_Z_HOP  15  // (mm) Move nozzle up before moving between corners
   #define LEVEL_CORNERS_HEIGHT 0.10  // (mm) Z height of nozzle at leveling points
   //#define LEVEL_CENTER_TOO        // Move to the center after the last corner
@@ -2259,8 +2259,8 @@
  *   root of your SD card, together with the compiled firmware.
  */
 //#define TFT_CLASSIC_UI
-//#define TFT_COLOR_UI
-#define TFT_LVGL_UI
+#define TFT_COLOR_UI
+//#define TFT_LVGL_UI
 
 /**
  * TFT Rotation. Set to one of the following values:
