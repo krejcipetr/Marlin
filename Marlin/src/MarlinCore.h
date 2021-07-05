@@ -106,7 +106,16 @@ bool pin_is_protected(const pin_t pin);
   #ifndef KILL_PIN_STATE
     #define KILL_PIN_STATE LOW
   #endif
-  inline bool kill_state() { return READ(KILL_PIN) == KILL_PIN_STATE; }
+  #ifndef KILL_PIN_INVERTING
+    #define KILL_PIN_INVERTING false
+  #endif
+  inline bool kill_state() { 
+	#if KILL_PIN_INVERTING
+	  return READ(KILL_PIN) != KILL_PIN_STATE; 
+	#else
+	  return READ(KILL_PIN) == KILL_PIN_STATE; 
+	#endif
+  }
 #endif
 
 extern const char M112_KILL_STR[];
