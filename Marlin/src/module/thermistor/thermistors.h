@@ -209,6 +209,9 @@ typedef struct { int16_t value; celsius_t celsius; } temp_entry_t;
 #if ANY_THERMISTOR_IS(1000) // Custom
   constexpr temp_entry_t temptable_1000[] PROGMEM = { { 0, 0 } };
 #endif
+#if ANY_THERMISTOR_IS(400) // TEWA TT2-100KC3H-7,  4066K, RP = 4K7, manually created
+  #include "thermistor_400.h"
+#endif
 
 #define _TT_NAME(_N) temptable_ ## _N
 #define TT_NAME(_N) _TT_NAME(_N)
