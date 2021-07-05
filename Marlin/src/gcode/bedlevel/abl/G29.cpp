@@ -102,7 +102,7 @@ public:
   #elif ENABLED(AUTO_BED_LEVELING_3POINT)
     static constexpr int abl_points = 3;
   #elif ABL_USES_GRID
-    static constexpr int abl_points = GRID_MAX_POINTS;
+    int abl_points = GRID_MAX_POINTS;
   #endif
 
   #if ABL_USES_GRID
@@ -114,7 +114,7 @@ public:
 
     xy_float_t gridSpacing; // = { 0.0f, 0.0f }
 
-    #if ENABLED(AUTO_BED_LEVELING_LINEAR)
+    #if EITHER(AUTO_BED_LEVELING_LINEAR,AUTO_BED_LEVELING_BILINEAR )
       bool                topography_map;
       xy_uint8_t          grid_points;
     #else // Bilinear
@@ -134,7 +134,7 @@ public:
   #endif
 };
 
-#if ABL_USES_GRID && EITHER(AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_BILINEAR)
+#if ABL_USES_GRID && ENABLED(AUTO_BED_LEVELING_3POINT)
   constexpr xy_uint8_t G29_State::grid_points;
   constexpr int G29_State::abl_points;
 #endif
@@ -201,7 +201,7 @@ public:
  *
  *  A  Abort current leveling procedure
  *
- * Extra parameters with BILINEAR only:
+ * Extra parameters with BILINEAR only:xy_uint8_t
  *
  *  W  Write a mesh point. (If G29 is idle.)
  *  I  X index for mesh point
@@ -273,48 +273,49 @@ G29_TYPE GcodeSuite::G29() {
 
     abl.reenable = planner.leveling_active;
 
-    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
-      const bool seen_w = parser.seen_test('W');
-      if (seen_w) {
-        if (!leveling_is_valid()) {
-          SERIAL_ERROR_MSG("No bilinear grid");
-          G29_RETURN(false);
-        }
+  const bool seen_w = parser.seen_test('W');
+  if (seen_w) {
+    if (!leveling_is_valid()) {
+      SERIAL_ERROR_MSG("No bilinear grid");
+      G29_RETURN(false);
+    }
 
-        const float rz = parser.seenval('Z') ? RAW_Z_POSITION(parser.value_linear_units()) : current_position.z;
-        if (!WITHIN(rz, -10, 10)) {
-          SERIAL_ERROR_MSG("Bad Z value");
-          G29_RETURN(false);
-        }
+    const float rz = parser.seenval('Z') ? RAW_Z_POSITION(parser.value_linear_units()) : current_position.z;
+    if (!WITHIN(rz, -10, 10)) {
+      SERIAL_ERROR_MSG("Bad Z value");
+      G29_RETURN(false);
+    }
 
-        const float rx = RAW_X_POSITION(parser.linearval('X', NAN)),
-                    ry = RAW_Y_POSITION(parser.linearval('Y', NAN));
-        int8_t i = parser.byteval('I', -1), j = parser.byteval('J', -1);
+    const float rx = RAW_X_POSITION(parser.linearval('X', NAN)),
+                ry = RAW_Y_POSITION(parser.linearval('Y', NAN));
+    int8_t i = parser.byteval('I', -1), j = parser.byteval('J', -1);
 
-        if (!isnan(rx) && !isnan(ry)) {
-          // Get nearest i / j from rx / ry
-          i = (rx - bilinear_start.x + 0.5 * abl.gridSpacing.x) / abl.gridSpacing.x;
-          j = (ry - bilinear_start.y + 0.5 * abl.gridSpacing.y) / abl.gridSpacing.y;
-          LIMIT(i, 0, (GRID_MAX_POINTS_X) - 1);
-          LIMIT(j, 0, (GRID_MAX_POINTS_Y) - 1);
-        }
-        if (WITHIN(i, 0, (GRID_MAX_POINTS_X) - 1) && WITHIN(j, 0, (GRID_MAX_POINTS_Y) - 1)) {
-          set_bed_leveling_enabled(false);
-          z_values[i][j] = rz;
-          TERN_(ABL_BILINEAR_SUBDIVISION, bed_level_virt_interpolate());
-          TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(i, j, rz));
-          set_bed_leveling_enabled(abl.reenable);
-          if (abl.reenable) report_current_position();
-        }
-        G29_RETURN(false);
-      } // parser.seen_test('W')
+    if (!isnan(rx) && !isnan(ry)) {
+      // Get nearest i / j from rx / ry
+      i = (rx - bilinear_start.x + 0.5 * bilinear_grid_spacing.x) / bilinear_grid_spacing.x;
+      j = (ry -  bilinear_start.y + 0.5 *bilinear_grid_spacing.y) / bilinear_grid_spacing.y;
+      LIMIT(i, 0, (abl.grid_points.x - 1));
+      LIMIT(j, 0, (abl.grid_points.y - 1));
+    }
+    if (WITHIN(i, 0, (bilinear_points.x) - 1) && WITHIN(j, 0, (bilinear_points.y) - 1)) {
+      set_bed_leveling_enabled(false);
+      z_values[i][j] = rz;
+      TERN_(ABL_BILINEAR_SUBDIVISION, bed_level_virt_interpolate());
+      TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(i, j, rz));
+      set_bed_leveling_enabled(abl.reenable);
+      if (abl.reenable) report_current_position();
+    }
+    G29_RETURN(false);
+  } // parser.seen_test('W')
 
-    #else
+#else
 
-      constexpr bool seen_w = false;
+  constexpr bool seen_w = false;
 
-    #endif
+#endif
+
 
     // Jettison bed leveling data
     if (!seen_w && parser.seen_test('J')) {
@@ -360,6 +361,21 @@ G29_TYPE GcodeSuite::G29() {
 
       abl.Z_offset = parser.linearval('Z');
 
+      abl.grid_points.set(
+              parser.byteval('M', GRID_MAX_POINTS_X),
+              parser.byteval('N', GRID_MAX_POINTS_Y)
+            );
+      if (!WITHIN(abl.grid_points.x, 2, GRID_MAX_POINTS_X)) {
+             SERIAL_ECHOLNPGM("?Probe points (X) implausible (2-" STRINGIFY(GRID_MAX_POINTS_X) ").");
+             G29_RETURN(false);
+           }
+           if (!WITHIN(abl.grid_points.y, 2, GRID_MAX_POINTS_Y)) {
+             SERIAL_ECHOLNPGM("?Probe points (Y) implausible (2-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
+             G29_RETURN(false);
+           }
+
+      abl.abl_points = abl.grid_points.x * abl.grid_points.y;
+
     #endif
 
     #if ABL_USES_GRID
@@ -375,8 +391,8 @@ G29_TYPE GcodeSuite::G29() {
         abl.probe_position_rb.set(_MIN(abl.probe_position_lf.x + size, x_max), _MIN(abl.probe_position_lf.y + size, y_max));
       }
       else {
-        abl.probe_position_lf.set(parser.linearval('L', x_min), parser.linearval('F', y_min));
-        abl.probe_position_rb.set(parser.linearval('R', x_max), parser.linearval('B', y_max));
+        abl.probe_position_lf.set(_MAX(parser.linearval('L', x_min),x_min), _MAX(parser.linearval('F', y_min),y_min));
+        abl.probe_position_rb.set(_MIN(parser.linearval('R', x_max),x_max), _MIN(parser.linearval('B', y_max),y_max));
       }
 
       if (!probe.good_bounds(abl.probe_position_lf, abl.probe_position_rb)) {
@@ -435,7 +451,7 @@ G29_TYPE GcodeSuite::G29() {
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
       if (TERN1(PROBE_MANUALLY, !no_action)
-        && (abl.gridSpacing != bilinear_grid_spacing || abl.probe_position_lf != bilinear_start)
+        && (abl.gridSpacing != bilinear_grid_spacing || abl.probe_position_lf != bilinear_start || abl.grid_points != bilinear_points)
       ) {
         // Reset grid to 0.0 or "not probed". (Also disables ABL)
         reset_bed_level();
@@ -443,6 +459,7 @@ G29_TYPE GcodeSuite::G29() {
         // Initialize a grid with the given dimensions
         bilinear_grid_spacing = abl.gridSpacing;
         bilinear_start = abl.probe_position_lf;
+        bilinear_points = abl.grid_points;
 
         // Can't re-enable (on error) until the new grid is written
         abl.reenable = false;

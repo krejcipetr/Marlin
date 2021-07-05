@@ -37,6 +37,7 @@
 
 xy_pos_t bilinear_grid_spacing, bilinear_start;
 xy_float_t bilinear_grid_factor;
+xy_uint8_t bilinear_points;
 bed_mesh_t z_values;
 
 /**
@@ -98,18 +99,18 @@ static void extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t
  */
 void extrapolate_unprobed_bed_level() {
   #ifdef HALF_IN_X
-    constexpr uint8_t ctrx2 = 0, xend = GRID_MAX_POINTS_X - 1;
+     uint8_t ctrx2 = 0, xend = bilinear_points.x - 1;
   #else
-    constexpr uint8_t ctrx1 = (GRID_MAX_CELLS_X) / 2, // left-of-center
-                      ctrx2 = (GRID_MAX_POINTS_X) / 2,  // right-of-center
+     uint8_t ctrx1 = (bilinear_points.x-1) / 2, // left-of-center
+                      ctrx2 = (bilinear_points.x) / 2,  // right-of-center
                       xend = ctrx1;
   #endif
 
   #ifdef HALF_IN_Y
-    constexpr uint8_t ctry2 = 0, yend = GRID_MAX_POINTS_Y - 1;
+     uint8_t ctry2 = 0, yend = bilinear_points.y - 1;
   #else
-    constexpr uint8_t ctry1 = (GRID_MAX_CELLS_Y) / 2, // top-of-center
-                      ctry2 = (GRID_MAX_POINTS_Y) / 2,  // bottom-of-center
+     uint8_t ctry1 = (bilinear_points.y-1) / 2, // top-of-center
+                      ctry2 = (bilinear_points.y) / 2,  // bottom-of-center
                       yend = ctry1;
   #endif
 
@@ -136,17 +137,19 @@ void extrapolate_unprobed_bed_level() {
 
 void print_bilinear_leveling_grid() {
   SERIAL_ECHOLNPGM("Bilinear Leveling Grid:");
-  print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 3,
+  SERIAL_ECHOLNPAIR("Leveled area: (",bilinear_start.x,",",bilinear_start.y,")->(",bilinear_start.x+bilinear_grid_spacing.x*(bilinear_points.x-1),",",bilinear_start.y+bilinear_grid_spacing.y*(bilinear_points.y-1),")");
+  SERIAL_ECHOLNPAIR("Points:",bilinear_points.x,",",bilinear_points.y);
+    print_2d_array(bilinear_points.x, bilinear_points.y, 3,
     [](const uint8_t ix, const uint8_t iy) { return z_values[ix][iy]; }
   );
 }
 
 #if ENABLED(ABL_BILINEAR_SUBDIVISION)
 
-  #define ABL_GRID_POINTS_VIRT_X GRID_MAX_CELLS_X * (BILINEAR_SUBDIVISIONS) + 1
-  #define ABL_GRID_POINTS_VIRT_Y GRID_MAX_CELLS_Y * (BILINEAR_SUBDIVISIONS) + 1
-  #define ABL_TEMP_POINTS_X (GRID_MAX_POINTS_X + 2)
-  #define ABL_TEMP_POINTS_Y (GRID_MAX_POINTS_Y + 2)
+  #define ABL_GRID_POINTS_VIRT_X (bilinear_points.x-1) * (BILINEAR_SUBDIVISIONS) + 1
+  #define ABL_GRID_POINTS_VIRT_Y (bilinear_points.y-1) * (BILINEAR_SUBDIVISIONS) + 1
+  #define ABL_TEMP_POINTS_X (bilinear_points.x + 2)
+  #define ABL_TEMP_POINTS_Y (bilinear_points.y + 2)
   float z_values_virt[ABL_GRID_POINTS_VIRT_X][ABL_GRID_POINTS_VIRT_Y];
   xy_pos_t bilinear_grid_spacing_virt;
   xy_float_t bilinear_grid_factor_virt;
@@ -161,7 +164,7 @@ void print_bilinear_leveling_grid() {
   #define LINEAR_EXTRAPOLATION(E, I) ((E) * 2 - (I))
   float bed_level_virt_coord(const uint8_t x, const uint8_t y) {
     uint8_t ep = 0, ip = 1;
-    if (x > (GRID_MAX_POINTS_X) + 1 || y > (GRID_MAX_POINTS_Y) + 1) {
+    if (x > (bilinear_points.x) + 1 || y > (bilinear_points.y) + 1) {
       // The requested point requires extrapolating two points beyond the mesh.
       // These values are only requested for the edges of the mesh, which are always an actual mesh point,
       // and do not require interpolation. When interpolation is not needed, this "Mesh + 2" point is
@@ -171,8 +174,8 @@ void print_bilinear_leveling_grid() {
     }
     if (!x || x == ABL_TEMP_POINTS_X - 1) {
       if (x) {
-        ep = (GRID_MAX_POINTS_X) - 1;
-        ip = GRID_MAX_CELLS_X - 1;
+        ep = (bilinear_points.x) - 1;
+        ip = (bilinear_points.x-1) - 1;
       }
       if (WITHIN(y, 1, ABL_TEMP_POINTS_Y - 2))
         return LINEAR_EXTRAPOLATION(
@@ -187,8 +190,8 @@ void print_bilinear_leveling_grid() {
     }
     if (!y || y == ABL_TEMP_POINTS_Y - 1) {
       if (y) {
-        ep = (GRID_MAX_POINTS_Y) - 1;
-        ip = GRID_MAX_CELLS_Y - 1;
+        ep = (bilinear_points.y) - 1;
+        ip = bilinear_points.y-1 - 1;
       }
       if (WITHIN(x, 1, ABL_TEMP_POINTS_X - 2))
         return LINEAR_EXTRAPOLATION(
@@ -227,11 +230,11 @@ void print_bilinear_leveling_grid() {
   void bed_level_virt_interpolate() {
     bilinear_grid_spacing_virt = bilinear_grid_spacing / (BILINEAR_SUBDIVISIONS);
     bilinear_grid_factor_virt = bilinear_grid_spacing_virt.reciprocal();
-    LOOP_L_N(y, GRID_MAX_POINTS_Y)
-      LOOP_L_N(x, GRID_MAX_POINTS_X)
+    LOOP_L_N(y, bilinear_points.y)
+      LOOP_L_N(x, bilinear_points.x)
         LOOP_L_N(ty, BILINEAR_SUBDIVISIONS)
           LOOP_L_N(tx, BILINEAR_SUBDIVISIONS) {
-            if ((ty && y == (GRID_MAX_POINTS_Y) - 1) || (tx && x == (GRID_MAX_POINTS_X) - 1))
+            if ((ty && y == (bilinear_points.y) - 1) || (tx && x == (bilinear_points.x) - 1))
               continue;
             z_values_virt[x * (BILINEAR_SUBDIVISIONS) + tx][y * (BILINEAR_SUBDIVISIONS) + ty] =
               bed_level_virt_2cmr(
@@ -259,8 +262,8 @@ void refresh_bed_level() {
 #else
   #define ABL_BG_SPACING(A) bilinear_grid_spacing.A
   #define ABL_BG_FACTOR(A)  bilinear_grid_factor.A
-  #define ABL_BG_POINTS_X   GRID_MAX_POINTS_X
-  #define ABL_BG_POINTS_Y   GRID_MAX_POINTS_Y
+  #define ABL_BG_POINTS_X   bilinear_points.x
+  #define ABL_BG_POINTS_Y   bilinear_points.y
   #define ABL_BG_GRID(X,Y)  z_values[X][Y]
 #endif
 
@@ -286,7 +289,7 @@ float bilinear_z_offset(const xy_pos_t &raw) {
   if (prev.x != rel.x) {
     prev.x = rel.x;
     ratio.x = rel.x * ABL_BG_FACTOR(x);
-    const float gx = constrain(FLOOR(ratio.x), 0, ABL_BG_POINTS_X - (FAR_EDGE_OR_BOX));
+    float gx = constrain(FLOOR(ratio.x), 0, ABL_BG_POINTS_X - (FAR_EDGE_OR_BOX));
     ratio.x -= gx;      // Subtract whole to get the ratio within the grid box
 
     #if DISABLED(EXTRAPOLATE_BEYOND_GRID)
