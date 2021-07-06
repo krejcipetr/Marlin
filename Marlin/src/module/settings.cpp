@@ -786,8 +786,8 @@ void MarlinSettings::postprocess() {
         const xy_pos_t bilinear_start{0}, bilinear_grid_spacing{0};
       #endif
 
-      const uint8_t grid_max_x = TERN(AUTO_BED_LEVELING_BILINEAR, GRID_MAX_POINTS_X, 3),
-                    grid_max_y = TERN(AUTO_BED_LEVELING_BILINEAR, GRID_MAX_POINTS_Y, 3);
+        	uint8_t grid_max_x = TERN(AUTO_BED_LEVELING_BILINEAR, bilinear_points.x, 3),
+                    grid_max_y = TERN(AUTO_BED_LEVELING_BILINEAR, bilinear_points.y, 3);
       EEPROM_WRITE(grid_max_x);
       EEPROM_WRITE(grid_max_y);
       EEPROM_WRITE(bilinear_grid_spacing);
@@ -1532,7 +1532,6 @@ void MarlinSettings::postprocess() {
             EEPROM_READ(hotend_offset[e]);
         #endif
       }
-
       //
       // Filament Runout Sensor
       //
@@ -1616,21 +1615,17 @@ void MarlinSettings::postprocess() {
         EEPROM_READ_ALWAYS(grid_max_x);                // 1 byte
         EEPROM_READ_ALWAYS(grid_max_y);                // 1 byte
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-          if (grid_max_x == (GRID_MAX_POINTS_X) && grid_max_y == (GRID_MAX_POINTS_Y)) {
-            if (!validating) set_bed_leveling_enabled(false);
+			bilinear_points.x = grid_max_x;
+			bilinear_points.y = grid_max_y;
             EEPROM_READ(bilinear_grid_spacing);        // 2 ints
             EEPROM_READ(bilinear_start);               // 2 ints
             EEPROM_READ(z_values);                     // 9 to 256 floats
-          }
-          else // EEPROM data is stale
-        #endif // AUTO_BED_LEVELING_BILINEAR
-          {
-            // Skip past disabled (or stale) Bilinear Grid data
-            xy_pos_t bgs, bs;
+        #else
+	        xy_pos_t bgs, bs;
             EEPROM_READ(bgs);
             EEPROM_READ(bs);
             for (uint16_t q = grid_max_x * grid_max_y; q--;) EEPROM_READ(dummyf);
-          }
+        #endif
       }
 
       //
