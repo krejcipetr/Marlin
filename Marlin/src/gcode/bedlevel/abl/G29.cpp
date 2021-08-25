@@ -201,7 +201,7 @@ public:
  *
  *  A  Abort current leveling procedure
  *
- * Extra parameters with BILINEAR only:xy_uint8_t
+ * Extra parameters with BILINEAR only:
  *
  *  W  Write a mesh point. (If G29 is idle.)
  *  I  X index for mesh point
