@@ -31,6 +31,7 @@
 
 #include "../../module/temperature.h"
 #include "../../module/planner.h"
+#include "../../feature/caselight.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
   #include "../../feature/bedlevel/bedlevel.h"
@@ -240,6 +241,12 @@ void Touch::touch(touch_control_t *control) {
 
     // TODO: TOUCH could receive data to pass to the callback
     case BUTTON: ((screenFunc_t)control->data)(); break;
+
+    case LIGHT:
+    	caselight.on = !  caselight.on;
+    	caselight.brightness = 255;
+    	caselight.update(caselight.on);
+    	break;
 
     default: break;
   }

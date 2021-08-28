@@ -35,6 +35,7 @@
 #include "../../module/printcounter.h"
 #include "../../module/planner.h"
 #include "../../module/motion.h"
+#include "../../feature/caselight.h"
 
 #if DISABLED(LCD_PROGRESS_BAR) && BOTH(FILAMENT_LCD_DISPLAY, SDSUPPORT)
   #include "../../feature/filwidth.h"
@@ -215,6 +216,14 @@ void draw_fan_status(uint16_t x, uint16_t y, const bool blink) {
   tft.add_text(tft_string.center(80) + 6, 82, COLOR_FAN, tft_string);
 }
 
+void draw_light_status(uint16_t x, uint16_t y, const bool blink) {
+  TERN_(TOUCH_SCREEN, touch.add_control(LIGHT, x, y, 80, 120));
+  tft.canvas(x, y, 80, 120);
+  tft.set_background(COLOR_BACKGROUND);
+
+  tft.add_image(8, 20, imgLight, (caselight.on)? COLOR_GREEN : COLOR_RED);
+}
+
 void MarlinUI::draw_status_screen() {
   const bool blink = get_blink();
 
@@ -242,11 +251,14 @@ void MarlinUI::draw_status_screen() {
         case ITEM_CHAMBER: draw_heater_status(x, y, H_CHAMBER); break;
       #endif
       #ifdef ITEM_COOLER
-        case ITEM_COOLER: draw_heater_status(x, y, H_COOLER); break;
+        case ITEM_COOLER: draw_heater_status(x, y, H_COOLER); break;TOUCH_SCREEN
       #endif
       #ifdef ITEM_FAN
         case ITEM_FAN: draw_fan_status(x, y, blink); break;
       #endif
+	#ifdef ITEM_LIGHT
+        case ITEM_LIGHT: draw_light_status(x, y, blink); break;
+	#endif
     }
   }
 
