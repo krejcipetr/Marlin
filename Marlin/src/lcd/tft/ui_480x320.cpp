@@ -405,8 +405,11 @@ void MenuEditItemBase::draw_edit_screen(PGM_P const pstr, const char * const val
     tft.add_bar(SLIDER_LENGTH - 1, 7, 1, 2, int32_t(ui.encoderPosition) == maxEditValue ? COLOR_SLIDER : COLOR_SLIDER_INACTIVE);
 
     #if ENABLED(TOUCH_SCREEN)
-      tft.add_image((SLIDER_LENGTH - 8) * ui.encoderPosition / maxEditValue, 0, imgSlider, COLOR_SLIDER);
-      touch.add_control(SLIDER, (TFT_WIDTH - SLIDER_LENGTH) / 2, SLIDER_Y_POSITION - 8, SLIDER_LENGTH, 32, maxEditValue);
+		#define MARGIN  (TFT_WIDTH - SLIDER_LENGTH) / 2
+      	tft.add_image((SLIDER_LENGTH - 8) * ui.encoderPosition / maxEditValue, 0, imgSlider, COLOR_SLIDER);
+        touch.add_control(SLIDER, MARGIN , SLIDER_Y_POSITION - 8, SLIDER_LENGTH, 32, maxEditValue);
+        touch.add_control(SETVALUE, MARGIN + SLIDER_LENGTH, SLIDER_Y_POSITION - 18, MARGIN, 42, maxEditValue);
+        touch.add_control(SETVALUE, 0, SLIDER_Y_POSITION - 18, MARGIN, 42, 0);
     #endif
   }
 

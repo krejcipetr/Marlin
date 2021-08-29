@@ -179,6 +179,8 @@ void Touch::touch(touch_control_t *control) {
     case SLIDER:    hold(control); ui.encoderPosition = (x - control->x) * control->data / control->width; break;
     case INCREASE:  hold(control, repeat_delay - 5); TERN(AUTO_BED_LEVELING_UBL, ui.external_control ? ubl.encoder_diff++ : ui.encoderPosition++, ui.encoderPosition++); break;
     case DECREASE:  hold(control, repeat_delay - 5); TERN(AUTO_BED_LEVELING_UBL, ui.external_control ? ubl.encoder_diff-- : ui.encoderPosition--, ui.encoderPosition--); break;
+    case SETVALUE: hold(control); ui.encoderPosition = control->data ; break;
+
     case HEATER:
       int8_t heater;
       heater = control->data;
@@ -243,8 +245,20 @@ void Touch::touch(touch_control_t *control) {
     case BUTTON: ((screenFunc_t)control->data)(); break;
 
     case LIGHT:
-    	caselight.on = !  caselight.on;
-    	caselight.brightness = 255;
+    	if (caselight.on) {
+    		if (caselight.brightness>128) {
+    			caselight.brightness = caselight.brightness/2;
+    			caselight.on = 1;
+    		}
+    		else {
+    			caselight.brightness = 0;
+    			caselight.on = 0;
+    		}
+    	}
+    	else {
+    		caselight.on = 1;
+    		caselight.brightness = 255;
+    	}
     	caselight.update(caselight.on);
     	break;
 
