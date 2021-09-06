@@ -245,20 +245,8 @@ void Touch::touch(touch_control_t *control) {
     case BUTTON: ((screenFunc_t)control->data)(); break;
 
     case LIGHT:
-    	if (caselight.on) {
-    		if (caselight.brightness>128) {
-    			caselight.brightness = caselight.brightness/2;
-    			caselight.on = 1;
-    		}
-    		else {
-    			caselight.brightness = 0;
-    			caselight.on = 0;
-    		}
-    	}
-    	else {
-    		caselight.on = 1;
-    		caselight.brightness = 255;
-    	}
+    	caselight.on = ! caselight.on;
+   		caselight.brightness = 255;
     	caselight.update(caselight.on);
     	break;
 
