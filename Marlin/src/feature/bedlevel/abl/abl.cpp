@@ -137,8 +137,8 @@ void extrapolate_unprobed_bed_level() {
 
 void print_bilinear_leveling_grid() {
   SERIAL_ECHOLNPGM("Bilinear Leveling Grid:");
-  SERIAL_ECHOLNPAIR("Leveled area: (",bilinear_start.x,",",bilinear_start.y,")->(",bilinear_start.x+bilinear_grid_spacing.x*(bilinear_points.x-1),",",bilinear_start.y+bilinear_grid_spacing.y*(bilinear_points.y-1),")");
-  SERIAL_ECHOLNPAIR("Points:",bilinear_points.x,",",bilinear_points.y);
+  SERIAL_ECHOLNPGM("Leveled area: (",bilinear_start.x,",",bilinear_start.y,")->(",bilinear_start.x+bilinear_grid_spacing.x*(bilinear_points.x-1),",",bilinear_start.y+bilinear_grid_spacing.y*(bilinear_points.y-1),")");
+  SERIAL_ECHOLNPGM("Points:",bilinear_points.x,",",bilinear_points.y);
     print_2d_array(bilinear_points.x, bilinear_points.y, 3,
     [](const uint8_t ix, const uint8_t iy) { return z_values[ix][iy]; }
   );
