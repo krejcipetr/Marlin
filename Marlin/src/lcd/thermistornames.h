@@ -130,7 +130,8 @@
   #define THERMISTOR_NAME "Einstart S"
 #elif THERMISTOR_ID == 400
   #define THERMISTOR_NAME "TEWA TT2-100KC3H-7 + PU 4K7"
-
+#elif THERMISTOR_ID == 2000
+  #define THERMISTOR_NAME "TDK NTCG104LH104JT1"
 
 // High Temperature thermistors
 #elif THERMISTOR_ID == 61
