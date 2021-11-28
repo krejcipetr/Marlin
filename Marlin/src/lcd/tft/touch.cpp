@@ -299,6 +299,11 @@ bool Touch::get_point(int16_t *x, int16_t *y) {
     #if PIN_EXISTS(TFT_BACKLIGHT)
       OUT_WRITE(TFT_BACKLIGHT_PIN, LOW);
     #endif
+
+	#if ENABLED(CASE_LIGHT_ENABLE)
+      caselight.caseSleep();
+	#endif
+
     next_sleep_ms = TSLP_SLEEPING;
   }
   void Touch::wakeUp() {
@@ -308,6 +313,10 @@ bool Touch::get_point(int16_t *x, int16_t *y) {
       #elif PIN_EXISTS(TFT_BACKLIGHT)
         WRITE(TFT_BACKLIGHT_PIN, HIGH);
       #endif
+
+	  #if ENABLED(CASE_LIGHT_ENABLE)
+        caselight.caseWakeup();
+	  #endif
     }
     next_sleep_ms = millis() + SEC_TO_MS(TOUCH_IDLE_SLEEP);
   }

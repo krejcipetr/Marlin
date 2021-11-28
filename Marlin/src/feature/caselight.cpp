@@ -26,23 +26,37 @@
 
 #include "caselight.h"
 
+#if CASE_LIGHT_IS_COLOR_LED
+  #include "leds/leds.h"
+#endif
+
 CaseLight caselight;
+
+void CaseLight::update_brightness() { caselight.update(false); }
+void CaseLight::update_enabled()   { caselight.update(true);  }
+
+void  CaseLight::caseSleep() { sleepState = on; brightness=255; on = false; update(on); }
+void  CaseLight::caseWakeup() {on = sleepState; brightness=255; update(on); }
+
 
 #if CASELIGHT_USES_BRIGHTNESS && !defined(CASE_LIGHT_DEFAULT_BRIGHTNESS)
   #define CASE_LIGHT_DEFAULT_BRIGHTNESS 0 // For use on PWM pin as non-PWM just sets a default
 #endif
 
-#if CASELIGHT_USES_BRIGHTNESS
-  uint8_t CaseLight::brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
-#endif
-
-bool CaseLight::on = CASE_LIGHT_DEFAULT_ON;
-
-#if CASE_LIGHT_IS_COLOR_LED
-  #include "leds/leds.h"
-  constexpr uint8_t init_case_light[] = CASE_LIGHT_DEFAULT_COLOR;
-  LEDColor CaseLight::color = { init_case_light[0], init_case_light[1], init_case_light[2] OPTARG(HAS_WHITE_LED, init_case_light[3]) };
-#endif
+void CaseLight::init() {
+	on = CASE_LIGHT_DEFAULT_ON;
+	#if CASELIGHT_USES_BRIGHTNESS
+	  brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
+	#endif
+    #if NEED_CASE_LIGHT_PIN
+      if (pin_is_pwm()) SET_PWM(CASE_LIGHT_PIN); else SET_OUTPUT(CASE_LIGHT_PIN);
+    #endif
+	#if CASE_LIGHT_IS_COLOR_LED
+      constexpr uint8_t init_case_light[] = CASE_LIGHT_DEFAULT_COLOR;
+      color = { init_case_light[0], init_case_light[1], init_case_light[2] OPTARG(HAS_WHITE_LED, init_case_light[3]) };
+	#endif
+    update_brightness();
+}
 
 void CaseLight::update(const bool sflag) {
   #if CASELIGHT_USES_BRIGHTNESS
