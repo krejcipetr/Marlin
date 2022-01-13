@@ -32,11 +32,13 @@
 
 CaseLight caselight;
 
-void CaseLight::update_brightness() { caselight.update(false); }
-void CaseLight::update_enabled()   { caselight.update(true);  }
-
 void  CaseLight::caseSleep() { sleepState = on; brightness=255; on = false; update(on); }
 void  CaseLight::caseWakeup() {on = sleepState; brightness=255; update(on); }
+
+void CaseLight::update_brightness() { caselight.update(false); }
+void CaseLight::update_enabled()    { caselight.update(true);  }
+
+
 
 
 #if CASE_LIGHT_IS_COLOR_LED

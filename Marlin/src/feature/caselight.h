@@ -35,6 +35,7 @@ class CaseLight {
 public:
   bool sleepState;
   bool on;
+
   #if ENABLED(CASELIGHT_USES_BRIGHTNESS)
     	uint8_t brightness;
   #endif
@@ -44,18 +45,18 @@ public:
 
   void init();
 
-  void update(const bool sflag);
-
-  static void update_brightness();
-  static void update_enabled();
-
   void caseSleep();
   void caseWakeup();
+  
+  void update(const bool sflag);
+  static void update_brightness();
+  static void update_enabled();
 
   #if ENABLED(CASE_LIGHT_IS_COLOR_LED)
     private:
        LEDColor color;
   #endif
+
 };
 
 extern CaseLight caselight;
