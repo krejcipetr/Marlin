@@ -26,46 +26,31 @@
 
 #include "caselight.h"
 
-		CaseLight caselight;
+CaseLight caselight;
 
-		void CaseLight::caseSleep() {
-			sleepState = on;
-#if CASELIGHT_USES_BRIGHTNESS
-	brightness=255;
-#endif
-		on = false; update(on); }
+void  CaseLight::caseSleep() { sleepState = on; brightness=255; on = false; update(on); }
+void  CaseLight::caseWakeup() {on = sleepState; brightness=255; update(on); }
 
+void CaseLight::update_brightness() { caselight.update(false); }
+void CaseLight::update_enabled()    { caselight.update(true);  }
 
-		void CaseLight::caseWakeup() {
-			on = sleepState;
-#if CASELIGHT_USES_BRIGHTNESS
-brightness=255;
-#endif
-		update(on); }
+void CaseLight::init() {
+	on = CASE_LIGHT_DEFAULT_ON;
+	#if CASELIGHT_USES_BRIGHTNESS
+	  brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
+	#endif
+    #if NEED_CASE_LIGHT_PIN
+      if (pin_is_pwm()) SET_PWM(CASE_LIGHT_PIN); else SET_OUTPUT(CASE_LIGHT_PIN);
+    #endif
+	#if CASE_LIGHT_IS_COLOR_LED
+      constexpr uint8_t init_case_light[] = CASE_LIGHT_DEFAULT_COLOR;
+      color = { init_case_light[0], init_case_light[1], init_case_light[2] OPTARG(HAS_WHITE_LED, init_case_light[3]) };
+	#endif
+    update_brightness();
+}
 
-		void CaseLight::update_brightness() { caselight.update(false);
-		} void CaseLight::update_enabled() { caselight.update(true); }
-
-#if CASELIGHT_USES_BRIGHTNESS && !defined(CASE_LIGHT_DEFAULT_BRIGHTNESS)
-  #define CASE_LIGHT_DEFAULT_BRIGHTNESS 255 // For use on PWM pin as non-PWM just sets a default
-#endif#if
-
-		void CaseLight::init() {
-#if CASELIGHT_USES_BRIGHTNESS
-brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
-#endif
-
-		on = CASE_LIGHT_DEFAULT_ON;
-
-		}
-
-#if CASE_LIGHT_IS_COLOR_LED
-  constexpr uint8_t init_case_light[] = CASE_LIGHT_DEFAULT_COLOR;
-  caselight.color = { init_case_light[0], init_case_light[1], init_case_light[2] OPTARG(HAS_WHITE_LED, init_case_light[3]) };
-#endif
-
-		void CaseLight::update(const bool sflag) {
-#if CASELIGHT_USES_BRIGHTNESS
+void CaseLight::update(const bool sflag) {
+  #if CASELIGHT_USES_BRIGHTNESS
     /**
      * The brightness_sav (and sflag) is needed because ARM chips ignore
      * a "WRITE(CASE_LIGHT_PIN,x)" command to the pins that are directly
@@ -84,7 +69,7 @@ brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
     UNUSED(n10ct);
   #endif
 
-#if CASE_LIGHT_IS_COLOR_LED
+  #if CASE_LIGHT_IS_COLOR_LED
     #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
       if (on)
         // Use current color of (NeoPixel) leds and new brightness level
@@ -98,7 +83,7 @@ brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
     #endif
   #else // !CASE_LIGHT_IS_COLOR_LED
 
-#if CASELIGHT_USES_BRIGHTNESS
+    #if CASELIGHT_USES_BRIGHTNESS
       if (pin_is_pwm())
         hal.set_pwm_duty(pin_t(CASE_LIGHT_PIN), (
           #if CASE_LIGHT_MAX_PWM == 255
@@ -109,16 +94,14 @@ brightness = CASE_LIGHT_DEFAULT_BRIGHTNESS;
         ));
       else
     #endif
-		{
-		const bool s =
-				on ? TERN(INVERT_CASE_LIGHT, LOW, HIGH) : TERN(
-								INVERT_CASE_LIGHT, HIGH, LOW);
-		WRITE(CASE_LIGHT_PIN, s ? HIGH : LOW);
-	}
+      {
+        const bool s = on ? TERN(INVERT_CASE_LIGHT, LOW, HIGH) : TERN(INVERT_CASE_LIGHT, HIGH, LOW);
+        WRITE(CASE_LIGHT_PIN, s ? HIGH : LOW);
+      }
 
-#endif // !CASE_LIGHT_IS_COLOR_LED
+  #endif // !CASE_LIGHT_IS_COLOR_LED
 
-#if ENABLED(CASE_LIGHT_USE_RGB_LED)
+  #if ENABLED(CASE_LIGHT_USE_RGB_LED)
     if (leds.lights_on) leds.update(); else leds.set_off();
   #endif
 }

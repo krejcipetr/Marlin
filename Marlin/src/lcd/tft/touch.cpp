@@ -251,10 +251,7 @@ void Touch::touch(touch_control_t *control) {
 
     case LIGHT:
     	caselight.on = ! caselight.on;
-#if CASELIGHT_USES_BRIGHTNESS
-   		caselight.brightness = 255;
-		#endif
-    	caselight.update(caselight.on);
+    	caselight.update(true);
     	break;
 
     default: break;
