@@ -35,6 +35,8 @@
 #include "../../module/printcounter.h"
 #include "../../module/planner.h"
 #include "../../module/motion.h"
+#include "../../feature/runout.h"
+#include "../../feature/caselight.h"
 
 #if DISABLED(LCD_PROGRESS_BAR) && BOTH(FILAMENT_LCD_DISPLAY, SDSUPPORT)
   #include "../../feature/filwidth.h"
@@ -216,6 +218,14 @@ void draw_fan_status(uint16_t x, uint16_t y, const bool blink) {
   tft.add_text(tft_string.center(80) + 6, 82, COLOR_FAN, tft_string);
 }
 
+void draw_light_status(uint16_t x, uint16_t y, const bool blink) {
+  TERN_(TOUCH_SCREEN, touch.add_control(LIGHT, x, y, 80, 120));
+  tft.canvas(x, y, 80, 120);
+  tft.set_background(COLOR_BACKGROUND);
+
+  tft.add_image(8, 20, imgLight, (caselight.on)? COLOR_GREEN : COLOR_RED);
+}
+
 void MarlinUI::draw_status_screen() {
   const bool blink = get_blink();
 
@@ -248,6 +258,9 @@ void MarlinUI::draw_status_screen() {
       #ifdef ITEM_FAN
         case ITEM_FAN: draw_fan_status(x, y, blink); break;
       #endif
+	#ifdef ITEM_LIGHT
+        case ITEM_LIGHT: draw_light_status(x, y, blink); break;
+	#endif
     }
   }
 
@@ -260,12 +273,11 @@ void MarlinUI::draw_status_screen() {
 
   if (TERN0(LCD_SHOW_E_TOTAL, printingIsActive())) {
     #if ENABLED(LCD_SHOW_E_TOTAL)
-      tft.add_text( 16, 3, COLOR_AXIS_HOMED , "E");
-      const uint8_t escale = e_move_accumulator >= 100000.0f ? 10 : 1; // After 100m switch to cm
-      tft_string.set(ftostr4sign(e_move_accumulator / escale));
-      tft_string.add(escale == 10 ? 'c' : 'm');
-      tft_string.add('m');
-      tft.add_text(192 - tft_string.width(), 3, COLOR_AXIS_HOMED, tft_string);
+      char tmp[15];
+      const uint8_t escale = e_move_accumulator >= 100000.0f ? 10 : 1; // show cm after 99,000mm
+      sprintf(tmp, "E % 6ld%cm", uint32_t(_MAX(e_move_accumulator, 0.0f)) / escale, escale == 10 ? 'c' : 'm'); // 1234567mm
+      tft_string.set(tmp);
+      tft.add_text(16, 3, COLOR_AXIS_HOMED, tft_string);
     #endif
   }
   else {
@@ -295,6 +307,16 @@ void MarlinUI::draw_status_screen() {
   }
   tft.add_text(455 - tft_string.width() - offset, 3, nhz ? COLOR_AXIS_NOT_HOMED : COLOR_AXIS_HOMED, tft_string);
   TERN_(TOUCH_SCREEN, touch.add_control(MOVE_AXIS, 4, y, TFT_WIDTH - 8, FONT_LINE_HEIGHT));
+
+#if HAS_FILAMENT_SENSOR
+  if ( printingIsActive()) {
+  	  tft_string.set("RO");
+  	  tft_string.add(ui8tostr3rj(active_extruder));
+  	  tft_string.add(":");
+	  tft_string.add(ftostr4sign(RunoutResponseDelayed::runout_mm_countdown[active_extruder]));
+	  tft.add_text(192, 3, COLOR_AXIS_HOMED, tft_string);
+  }
+#endif
 
   y += TERN(HAS_UI_480x272, 38, 48);
   // feed rate
@@ -403,8 +425,11 @@ void MenuEditItemBase::draw_edit_screen(FSTR_P const fstr, const char * const va
     tft.add_bar(SLIDER_LENGTH - 1, 7, 1, 2, int32_t(ui.encoderPosition) == maxEditValue ? COLOR_SLIDER : COLOR_SLIDER_INACTIVE);
 
     #if ENABLED(TOUCH_SCREEN)
-      tft.add_image((SLIDER_LENGTH - 8) * ui.encoderPosition / maxEditValue, 0, imgSlider, COLOR_SLIDER);
-      touch.add_control(SLIDER, (TFT_WIDTH - SLIDER_LENGTH) / 2, SLIDER_Y_POSITION - 8, SLIDER_LENGTH, 32, maxEditValue);
+		#define MARGIN  (TFT_WIDTH - SLIDER_LENGTH) / 2
+      	tft.add_image((SLIDER_LENGTH - 8) * ui.encoderPosition / maxEditValue, 0, imgSlider, COLOR_SLIDER);
+        touch.add_control(SLIDER, MARGIN , SLIDER_Y_POSITION - 8, SLIDER_LENGTH, 32, maxEditValue);
+        touch.add_control(SETVALUE, MARGIN + SLIDER_LENGTH, SLIDER_Y_POSITION - 18, MARGIN, 42, maxEditValue);
+        touch.add_control(SETVALUE, 0, SLIDER_Y_POSITION - 18, MARGIN, 42, 0);
     #endif
   }
 

@@ -80,6 +80,12 @@ void menu_item(const uint8_t row, bool sel = false);
   #define ITEM_BED        2
   #define ITEM_FAN        3
   #define ITEMS_COUNT     4
+#elif ENABLED(CASE_LIGHT_ENABLE)
+  #define ITEM_E0         0
+  #define ITEM_BED        1
+  #define ITEM_FAN        2
+  #define ITEM_LIGHT      3
+  #define ITEMS_COUNT     4
 #else
   #define ITEM_E0         0
   #define ITEM_BED        1

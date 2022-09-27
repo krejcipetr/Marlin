@@ -282,7 +282,9 @@ public:
     static uint8_t sleep_timeout_minutes;
     static millis_t screen_timeout_millis;
     static void refresh_screen_timeout();
-    static void sleep_display(const bool sleep=true);
+	#if DISPLAY_SLEEP_MINUTES
+    	static void sleep_display(const bool sleep=true);
+	#endif
   #endif
 
   #if HAS_DWIN_E3V2_BASIC

@@ -186,14 +186,15 @@ constexpr uint8_t epps = ENCODER_PULSES_PER_STEP;
   }
 
 #elif HAS_DISPLAY_SLEEP
-
   constexpr uint8_t MarlinUI::sleep_timeout_min, MarlinUI::sleep_timeout_max;
 
   uint8_t MarlinUI::sleep_timeout_minutes; // Initialized by settings.load()
   millis_t MarlinUI::screen_timeout_millis = 0;
   void MarlinUI::refresh_screen_timeout() {
     screen_timeout_millis = sleep_timeout_minutes ? millis() + sleep_timeout_minutes * 60UL * 1000UL : 0;
-    sleep_display(false);
+#if DISPLAY_SLEEP_MINUTES
+    MarlinUI::sleep_display(false);
+#endif
   }
 
 #endif
@@ -1178,10 +1179,10 @@ void MarlinUI::init() {
           WRITE(LCD_BACKLIGHT_PIN, LOW); // Backlight off
           backlight_off_ms = 0;
         }
-      #elif HAS_DISPLAY_SLEEP
+      #elif DISPLAY_SLEEP_MINUTES
         if (screen_timeout_millis && ELAPSED(ms, screen_timeout_millis))
-          sleep_display();
-      #endif
+        	MarlinUI::sleep_display(true);
+        #endif
 
       // Change state of drawing flag between screen updates
       if (!drawing_screen) switch (lcdDrawUpdate) {
@@ -1881,3 +1882,4 @@ void MarlinUI::init() {
   #endif // EEPROM_AUTO_INIT
 
 #endif // EEPROM_SETTINGS
+

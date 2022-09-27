@@ -31,6 +31,7 @@
 
 #include "../../module/temperature.h"
 #include "../../module/planner.h"
+#include "../../feature/caselight.h"
 
 #if ENABLED(AUTO_BED_LEVELING_UBL)
   #include "../../feature/bedlevel/bedlevel.h"
@@ -180,8 +181,11 @@ void Touch::touch(touch_control_t *control) {
       ui.refresh();
       break;
     case SLIDER:    hold(control); ui.encoderPosition = (x - control->x) * control->data / control->width; break;
-    case INCREASE:  hold(control, repeat_delay - 5); TERN(AUTO_BED_LEVELING_UBL, ui.external_control ? bedlevel.encoder_diff++ : ui.encoderPosition++, ui.encoderPosition++); break;
-    case DECREASE:  hold(control, repeat_delay - 5); TERN(AUTO_BED_LEVELING_UBL, ui.external_control ? bedlevel.encoder_diff-- : ui.encoderPosition--, ui.encoderPosition--); break;
+
+    case INCREASE:  hold(control, repeat_delay - 5); TERN(AUTO_BED_LEVELING_UBL, ui.external_control ? ubl.encoder_diff++ : ui.encoderPosition++, ui.encoderPosition++); break;
+    case DECREASE:  hold(control, repeat_delay - 5); TERN(AUTO_BED_LEVELING_UBL, ui.external_control ? ubl.encoder_diff-- : ui.encoderPosition--, ui.encoderPosition--); break;
+    case SETVALUE: hold(control); ui.encoderPosition = control->data ; break;
+
     case HEATER:
       int8_t heater;
       heater = control->data;
@@ -245,6 +249,14 @@ void Touch::touch(touch_control_t *control) {
     // TODO: TOUCH could receive data to pass to the callback
     case BUTTON: ((screenFunc_t)control->data)(); break;
 
+    case LIGHT:
+    	caselight.on = ! caselight.on;
+#if CASELIGHT_USES_BRIGHTNESS
+   		caselight.brightness = 255;
+		#endif
+    	caselight.update(caselight.on);
+    	break;
+
     default: break;
   }
 }
@@ -292,6 +304,11 @@ bool Touch::get_point(int16_t *x, int16_t *y) {
     #elif PIN_EXISTS(TFT_BACKLIGHT)
       WRITE(TFT_BACKLIGHT_PIN, LOW);
     #endif
+
+	#if ENABLED(CASE_LIGHT_ENABLE)
+      caselight.caseSleep();
+	#endif
+
     next_sleep_ms = TSLP_SLEEPING;
   }
   void Touch::wakeUp() {
@@ -301,8 +318,12 @@ bool Touch::get_point(int16_t *x, int16_t *y) {
       #elif PIN_EXISTS(TFT_BACKLIGHT)
         WRITE(TFT_BACKLIGHT_PIN, HIGH);
       #endif
+
+	  #if ENABLED(CASE_LIGHT_ENABLE)
+        caselight.caseWakeup();
+	  #endif
     }
-    next_sleep_ms = millis() + SEC_TO_MS(ui.sleep_timeout_minutes * 60);
+    next_sleep_ms = millis() + SEC_TO_MS( TOUCH_IDLE_SLEEP_MINS * 60);
   }
 
 #endif // HAS_TOUCH_SLEEP

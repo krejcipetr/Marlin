@@ -1203,7 +1203,8 @@ void setup() {
 
   #if HAS_SUICIDE
     SETUP_LOG("SUICIDE_PIN");
-    OUT_WRITE(SUICIDE_PIN, !SUICIDE_PIN_STATE);
+    pinMode(SUICIDE_PIN, OUTPUT);
+    digitalWrite(SUICIDE_PIN, (! SUICIDE_PIN_INVERTING) ? HIGH:LOW);
   #endif
 
   #ifdef JTAGSWD_RESET

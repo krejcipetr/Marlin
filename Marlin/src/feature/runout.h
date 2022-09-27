@@ -336,10 +336,11 @@ class FilamentSensorBase {
   // during a runout condition.
   class RunoutResponseDelayed {
     private:
-      static volatile float runout_mm_countdown[NUM_RUNOUT_SENSORS];
 
     public:
       static float runout_distance_mm;
+
+      static volatile float runout_mm_countdown[NUM_RUNOUT_SENSORS];
 
       static void reset() {
         LOOP_L_N(i, NUM_RUNOUT_SENSORS) filament_present(i);
