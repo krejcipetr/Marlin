@@ -73,8 +73,14 @@ uint8_t TouchButtons::read_buttons() {
       #if HAS_TOUCH_SLEEP
         if (is_touched)
           wakeUp();
+           #if CASE_LIGHT_ENABLE
+        	caselight.caseWakeup();
+		  #endif
         else if (!isSleeping() && ELAPSED(millis(), next_sleep_ms) && ui.on_status_screen())
           sleepTimeout();
+            #if CASE_LIGHT_ENABLE
+			caselight.caseSleep();
+	      #endif
       #endif
       if (!is_touched) return 0;
 
