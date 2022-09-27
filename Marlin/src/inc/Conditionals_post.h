@@ -402,8 +402,8 @@
 #endif
 
 #ifdef GRID_MAX_POINTS_X
-  #define GRID_MAX_CELLS_X (GRID_MAX_POINTS_X - 1)
-  #define GRID_MAX_CELLS_Y (GRID_MAX_POINTS_Y - 1)
+  #define GRID_MAX_CELLS_X (grid_points.x - 1)
+  #define GRID_MAX_CELLS_Y (grid_points.y - 1)
 #endif
 
 /**

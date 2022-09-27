@@ -105,13 +105,7 @@ public:
     int abl_probe_index;
   #endif
 
-  #if ENABLED(AUTO_BED_LEVELING_LINEAR)
-    int abl_points;
-  #elif ENABLED(AUTO_BED_LEVELING_3POINT)
-    static constexpr int abl_points = 3;
-  #elif ABL_USES_GRID
-    static constexpr int abl_points = GRID_MAX_POINTS;
-  #endif
+  int abl_points= GRID_MAX_POINTS_X * GRID_MAX_POINTS_Y ;
 
   #if ABL_USES_GRID
 
@@ -121,12 +115,10 @@ public:
              probe_position_rb;
 
     xy_float_t gridSpacing; // = { 0.0f, 0.0f }
+    xy_uint8_t grid_points = { GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y};
 
     #if ENABLED(AUTO_BED_LEVELING_LINEAR)
       bool                topography_map;
-      xy_uint8_t          grid_points;
-    #else // Bilinear
-      static constexpr xy_uint8_t grid_points = { GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y };
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
@@ -142,11 +134,6 @@ public:
     #endif
   #endif
 };
-
-#if ABL_USES_GRID && EITHER(AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_BILINEAR)
-  constexpr xy_uint8_t G29_State::grid_points;
-  constexpr int G29_State::abl_points;
-#endif
 
 /**
  * G29: Detailed Z probe, probes the bed at 3 or more points.
@@ -318,13 +305,13 @@ G29_TYPE GcodeSuite::G29() {
           // Get nearest i / j from rx / ry
           i = (rx - bedlevel.grid_start.x) / bedlevel.grid_spacing.x + 0.5f;
           j = (ry - bedlevel.grid_start.y) / bedlevel.grid_spacing.y + 0.5f;
-          LIMIT(i, 0, (GRID_MAX_POINTS_X) - 1);
-          LIMIT(j, 0, (GRID_MAX_POINTS_Y) - 1);
+          LIMIT(i, 0, (bedlevel.grid_points.x) - 1);
+          LIMIT(j, 0, (bedlevel.grid_points.y) - 1);
         }
 
         #pragma GCC diagnostic pop
 
-        if (WITHIN(i, 0, (GRID_MAX_POINTS_X) - 1) && WITHIN(j, 0, (GRID_MAX_POINTS_Y) - 1)) {
+        if (WITHIN(i, 0, (bedlevel.grid_points.x) - 1) && WITHIN(j, 0, (bedlevel.grid_points.y) - 1)) {
           set_bed_leveling_enabled(false);
           bedlevel.z_values[i][j] = rz;
           bedlevel.refresh_bed_level();
@@ -387,6 +374,23 @@ G29_TYPE GcodeSuite::G29() {
 
       abl.Z_offset = parser.linearval('Z');
 
+      abl.grid_points.set(
+             parser.byteval('M', GRID_MAX_POINTS_X),
+             parser.byteval('N', GRID_MAX_POINTS_Y)
+           );
+
+           if (parser.seenval('P')) abl.grid_points.x = abl.grid_points.y = parser.value_int();
+
+           if (!WITHIN(abl.grid_points.x, 2, GRID_MAX_POINTS_X)) {
+             SERIAL_ECHOLNPGM("?Probe points (X) implausible (2-" STRINGIFY(GRID_MAX_POINTS_X) ").");
+             G29_RETURN(false, false);
+           }
+           if (!WITHIN(abl.grid_points.y, 2, GRID_MAX_POINTS_Y)) {
+             SERIAL_ECHOLNPGM("?Probe points (Y) implausible (2-" STRINGIFY(GRID_MAX_POINTS_Y) ").");
+             G29_RETURN(false, false);
+           }
+
+           abl.abl_points = abl.grid_points.x * abl.grid_points.y;
     #endif
 
     #if ABL_USES_GRID
@@ -803,7 +807,7 @@ G29_TYPE GcodeSuite::G29() {
       if (abl.dryrun)
         bedlevel.print_leveling_grid(&abl.z_values);
       else {
-        bedlevel.set_grid(abl.gridSpacing, abl.probe_position_lf);
+        bedlevel.set_grid(abl.gridSpacing, abl.probe_position_lf, abl.grid_points);
         COPY(bedlevel.z_values, abl.z_values);
         TERN_(IS_KINEMATIC, bedlevel.extrapolate_unprobed_bed_level());
         bedlevel.refresh_bed_level();
