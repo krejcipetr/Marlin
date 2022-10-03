@@ -406,8 +406,8 @@ G29_TYPE GcodeSuite::G29() {
         abl.probe_position_rb.set(_MIN(abl.probe_position_lf.x + size, x_max), _MIN(abl.probe_position_lf.y + size, y_max));
       }
       else {
-        abl.probe_position_lf.set(parser.linearval('L', x_min), parser.linearval('F', y_min));
-        abl.probe_position_rb.set(parser.linearval('R', x_max), parser.linearval('B', y_max));
+    	  abl.probe_position_lf.set(parser.linearval('L', x_min), parser.linearval('F', y_min));
+    	  abl.probe_position_rb.set(parser.linearval('R', x_max), parser.linearval('B', y_max));
       }
 
       if (!probe.good_bounds(abl.probe_position_lf, abl.probe_position_rb)) {
@@ -416,7 +416,28 @@ G29_TYPE GcodeSuite::G29() {
                               " F", abl.probe_position_lf.y, " B", abl.probe_position_rb.y);
         }
         SERIAL_ECHOLNPGM("? (L,R,F,B) out of bounds.");
+
+#ifdef ABL_CORRECT_RANGE
+        SERIAL_ECHOLNPGM(" ABL is correct the range, using edges");
+        if (abl.probe_position_lf.x < x_min) {
+        	SERIAL_ECHOLNPGM("L < X_MIN");
+        	abl.probe_position_lf.x = x_min+1;
+        }
+        if (abl.probe_position_lf.y < y_min) {
+        	SERIAL_ECHOLNPGM("F < Y_MIN");
+        	abl.probe_position_lf.y = y_min+1;
+        }
+        if (abl.probe_position_rb.x > x_max) {
+        	SERIAL_ECHOLNPGM("R > X_MAX");
+        	abl.probe_position_rb.x = x_max-1;
+        }
+        if (abl.probe_position_rb.y > y_max) {
+        	SERIAL_ECHOLNPGM("B > Y_MAX");
+        	abl.probe_position_rb.y = y_max-1;
+        }
+#else
         G29_RETURN(false, false);
+#endif
       }
 
       // Probe at the points of a lattice grid

@@ -278,6 +278,17 @@ void MarlinUI::draw_status_screen() {
       sprintf(tmp, "E % 6ld%cm", uint32_t(_MAX(e_move_accumulator, 0.0f)) / escale, escale == 10 ? 'c' : 'm'); // 1234567mm
       tft_string.set(tmp);
       tft.add_text(16, 3, COLOR_AXIS_HOMED, tft_string);
+      
+      #if HAS_FILAMENT_SENSOR
+  if ( printingIsActive()) {
+  	  tft_string.set("RO");
+  	  tft_string.add(ui8tostr3rj(active_extruder));
+  	  tft_string.add(":");
+	  tft_string.add(ftostr4sign(RunoutResponseDelayed::runout_mm_countdown[active_extruder]));
+	  tft.add_text(192, 3, COLOR_AXIS_HOMED, tft_string);
+  }
+#endif
+
     #endif
   }
   else {
@@ -308,15 +319,7 @@ void MarlinUI::draw_status_screen() {
   tft.add_text(455 - tft_string.width() - offset, 3, nhz ? COLOR_AXIS_NOT_HOMED : COLOR_AXIS_HOMED, tft_string);
   TERN_(TOUCH_SCREEN, touch.add_control(MOVE_AXIS, 4, y, TFT_WIDTH - 8, FONT_LINE_HEIGHT));
 
-#if HAS_FILAMENT_SENSOR
-  if ( printingIsActive()) {
-  	  tft_string.set("RO");
-  	  tft_string.add(ui8tostr3rj(active_extruder));
-  	  tft_string.add(":");
-	  tft_string.add(ftostr4sign(RunoutResponseDelayed::runout_mm_countdown[active_extruder]));
-	  tft.add_text(192, 3, COLOR_AXIS_HOMED, tft_string);
-  }
-#endif
+
 
   y += TERN(HAS_UI_480x272, 38, 48);
   // feed rate
