@@ -1,0 +1,1 @@
+cp .pio/build/mks_robin_nano_v1v2/Robin_nano35.bin /run/media/krejci/D0C6-9395/ROBIN_NANO35.BIN; sudo eject /dev/sdb
