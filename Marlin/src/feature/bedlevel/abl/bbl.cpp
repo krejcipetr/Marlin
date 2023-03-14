@@ -94,7 +94,8 @@ void LevelingBilinear::extrapolate_one_point(const uint8_t x, const uint8_t y, c
 void LevelingBilinear::reset() {
 	grid_start.reset();
 	grid_spacing.reset();
-	grid_points.reset();
+	grid_points.x = GRID_MAX_POINTS_X;
+	grid_points.y = GRID_MAX_POINTS_Y;
   GRID_LOOP(x, y) {
     z_values[x][y] = NAN;
     TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(x, y, 0));
@@ -117,16 +118,16 @@ void LevelingBilinear::extrapolate_unprobed_bed_level() {
   #ifdef HALF_IN_X
      uint8_t ctrx2 = 0, xend = this.grid_points.x - 1;
   #else
-     uint8_t ctrx1 = (GRID_MAX_CELLS_X) / 2, // left-of-center
-                      ctrx2 = (GRID_MAX_POINTS_X) / 2,  // right-of-center
+     uint8_t ctrx1 = (grid_points.x) / 2, // left-of-center
+                      ctrx2 = (grid_points.x) / 2,  // right-of-center
                       xend = ctrx1;
   #endif
 
   #ifdef HALF_IN_Y
      uint8_t ctry2 = 0, yend = GRID_MAX_POINTS_Y - 1;
   #else
-     uint8_t ctry1 = (GRID_MAX_CELLS_Y) / 2, // top-of-center
-                      ctry2 = (GRID_MAX_POINTS_Y) / 2,  // bottom-of-center
+     uint8_t ctry1 = (grid_points.y) / 2, // top-of-center
+                      ctry2 = (grid_points.y) / 2,  // bottom-of-center
                       yend = ctry1;
   #endif
 
