@@ -1465,7 +1465,7 @@
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
-#define PROBING_MARGIN 0
+#define PROBING_MARGIN 10
 
 // X and Y axis travel speed (mm/min) between probes
 #define XY_PROBE_FEEDRATE (200*60)
@@ -1828,7 +1828,7 @@
  *   Probe 3 arbitrary points on the bed (that aren't collinear)
  *   You specify the XY coordinates of all 3 points.
  *   The result is a single tilted plane. Best for a flat bed.
- *
+ *AUTO_BED_LEVELING_BILINEAR
  * - AUTO_BED_LEVELING_LINEAR
  *   Probe several points in a grid.
  *   You specify the rectangle and the density of sample points.
@@ -2089,7 +2089,7 @@
 
 /**
  * Bed Skew Compensation
- *
+ *MESH
  * This feature corrects for misalignment in the XYZ axes.
  *
  * Take the following steps to get the bed skew in the XY plane:
@@ -3359,3 +3359,6 @@
 #define FIL_RUNOUT2_PIN                   PE6
 
 //#define MARLIN_DEV_MODE
+
+//#define SCAD_MESH_OUTPUT
+//#define DEBUG_LEVELING_FEATURE
