@@ -174,7 +174,7 @@ public:
  *
  *     -or-
  *
- *  F  Set the Front limit of the probing grid
+ *  F  Set the Front limit of the probing gridabl
  *  B  Set the Back limit of the probing grid
  *  L  Set the Left limit of the probing grid
  *  R  Set the Right limit of the probing grid
@@ -540,7 +540,6 @@ G29_TYPE GcodeSuite::G29() {
 
       // Pre-populate local Z values from the stored mesh
       TERN_(IS_KINEMATIC, COPY(abl.z_values, bedlevel.z_values));
-
     #endif // AUTO_BED_LEVELING_BILINEAR
 
   } // !g29_in_progress
@@ -752,11 +751,9 @@ G29_TYPE GcodeSuite::G29() {
             incremental_LSF(&lsf_results, abl.probePos, abl.measured_z);
 
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
-
             const float z = abl.measured_z + abl.Z_offset;
             abl.z_values[abl.meshCount.x][abl.meshCount.y] = z;
             TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(abl.meshCount, z));
-
           #endif
 
           abl.reenable = false; // Don't re-enable after modifying the mesh
