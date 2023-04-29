@@ -22,7 +22,7 @@
 #pragma once
 
 //  TEWA TT2-100KC3H-7, 100KOhm, 4066K, RP = 4K7, manually created
-const temp_entry_t temptable_400[] PROGMEM = {
+constexpr temp_entry_t temptable_400[] PROGMEM = {
 		{OV(22.1264832007994),300 },
 		{OV(23.6674426338543),295 },
 		{OV(25.3487435934679),290 },
