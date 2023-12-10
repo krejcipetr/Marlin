@@ -119,16 +119,16 @@ void LevelingBilinear::extrapolate_unprobed_bed_level() {
      uint8_t ctrx2 = 0, xend = this.grid_points.x - 1;
   #else
      uint8_t ctrx1 = (GRID_MAX_CELLS_X) / 2, // left-of-center
-                      ctrx2 = (grid_points.x) / 2,  // right-of-center
-                      xend = ctrx1;
+             ctrx2 = (grid_points.x) / 2,  // right-of-center
+             xend = ctrx1;
   #endif
 
   #ifdef HALF_IN_Y
      uint8_t ctry2 = 0, yend = this.grid_points.y - 1;
   #else
      uint8_t ctry1 = (GRID_MAX_CELLS_Y) / 2, // top-of-center
-                      ctry2 = (grid_points.y) / 2,  // bottom-of-center
-                      yend = ctry1;
+             ctry2 = (grid_points.y) / 2,  // bottom-of-center
+             yend = ctry1;
   #endif
 
   LOOP_LE_N(xo, xend)
