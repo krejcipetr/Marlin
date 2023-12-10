@@ -218,6 +218,10 @@ G29_TYPE GcodeSuite::G29() {
   // Leveling state is persistent when done manually with multiple G29 commands
   TERN_(PROBE_MANUALLY, static) G29_State abl;
 
+	#if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+      ZERO(abl.z_values);
+    #endif
+
   // Keep powered steppers from timing out
   reset_stepper_timeout();
 
@@ -526,15 +530,11 @@ G29_TYPE GcodeSuite::G29() {
     #endif
 
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
-      if (!abl.dryrun
-        && (abl.gridSpacing != bedlevel.grid_spacing || abl.probe_position_lf != bedlevel.grid_start || abl.grid_points != bedlevel.grid_points)
-      ) {
         // Reset grid to 0.0 or "not probed". (Also disables ABL)
         reset_bed_level();
 
         // Can't re-enable (on error) until the new grid is written
         abl.reenable = false;
-      }
 
       // Pre-populate local Z values from the stored mesh
       TERN_(IS_KINEMATIC, COPY(abl.z_values, bedlevel.z_values));

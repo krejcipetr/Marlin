@@ -303,9 +303,9 @@
   #define THERMAL_PROTECTION_PERIOD 40        // Seconds
   #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
 
-  //#define ADAPTIVE_FAN_SLOWING              // Slow part cooling fan if temperature drops
+  #define ADAPTIVE_FAN_SLOWING              // Slow part cooling fan if temperature drops
   #if BOTH(ADAPTIVE_FAN_SLOWING, PIDTEMP)
-    //#define NO_FAN_SLOWING_IN_PID_TUNING    // Don't slow fan speed during M303
+    #define NO_FAN_SLOWING_IN_PID_TUNING    // Don't slow fan speed during M303
   #endif
 
   /**
@@ -1133,15 +1133,17 @@
 #define DISABLE_INACTIVE_E true
 
 // Default Minimum Feedrates for printing and travel moves
-#define DEFAULT_MINIMUMFEEDRATE       0.0     // (mm/s. °/s for rotational-only moves) Minimum feedrate. Set with M205 S.
-#define DEFAULT_MINTRAVELFEEDRATE     0.0     // (mm/s. °/s for rotational-only moves) Minimum travel feedrate. Set with M205 T.
+#define DEFAULT_MINIMUMFEEDRATE      1.0     // (mm/s. °/s for rotational-only moves) Minimum feedrate. Set with M205 S.
+#define DEFAULT_MINTRAVELFEEDRATE    20
+
+// (mm/s. °/s for rotational-only moves) Minimum travel feedrate. Set with M205 T.
 
 // Minimum time that a segment needs to take as the buffer gets emptied
 #define DEFAULT_MINSEGMENTTIME        20000   // (µs) Set with M205 B.
 
 // Slow down the machine if the lookahead buffer is (by default) half full.
 // Increase the slowdown divisor for larger buffer sizes.
-#define SLOWDOWN
+//#define SLOWDOWN
 #if ENABLED(SLOWDOWN)
   #define SLOWDOWN_DIVISOR 2
 #endif
@@ -1152,7 +1154,7 @@
  * See https://hydraraptor.blogspot.com/2010/12/frequency-limit.html
  * Use M201 F<freq> G<min%> to change limits at runtime.
  */
-//#define XY_FREQUENCY_LIMIT      10 // (Hz) Maximum frequency of small zigzag infill moves. Set with M201 F<hertz>.
+#define XY_FREQUENCY_LIMIT      10 // (Hz) Maximum frequency of small zigzag infill moves. Set with M201 F<hertz>.
 #ifdef XY_FREQUENCY_LIMIT
   #define XY_FREQUENCY_MIN_PERCENT 5 // (percent) Minimum FR percentage to apply. Set with M201 G<min%>.
 #endif
@@ -1160,7 +1162,7 @@
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
 // if unwanted behavior is observed on a user's machine when running at very slow speeds.
-#define MINIMUM_PLANNER_SPEED 0.05 // (mm/s)
+#define MINIMUM_PLANNER_SPEED 0.5 // (mm/s)
 
 //
 // Backlash Compensation
@@ -2389,7 +2391,7 @@
 #if BOTH(SDSUPPORT, DIRECT_STEPPING)
   #define BLOCK_BUFFER_SIZE  8
 #elif ENABLED(SDSUPPORT)
-  #define BLOCK_BUFFER_SIZE 32
+  #define BLOCK_BUFFER_SIZE 64
 #else
   #define BLOCK_BUFFER_SIZE 32
 #endif
@@ -2407,7 +2409,7 @@
 // For debug-echo: 128 bytes for the optimal speed.
 // Other output doesn't need to be that speedy.
 // :[0, 2, 4, 8, 16, 32, 64, 128, 256]
-#define TX_BUFFER_SIZE 64
+#define TX_BUFFER_SIZE 32
 
 // Host Receive Buffer Size
 // Without XON/XOFF flow control (see SERIAL_XON_XOFF below) 32 bytes should be enough.
