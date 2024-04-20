@@ -30,14 +30,14 @@
 class CaseLight {
 public:
   bool sleepState;
-  bool on;
 
-  #if ENABLED(CASELIGHT_USES_BRIGHTNESS)
-     uint8_t brightness;
+  bool on;
+  #if CASELIGHT_USES_BRIGHTNESS
+    uint8_t brightness;
   #endif
 
-  static bool pin_is_pwm() { return TERN0(NEED_CASE_LIGHT_PIN, PWM_PIN(CASE_LIGHT_PIN)); }
-  static bool has_brightness() { return TERN0(CASELIGHT_USES_BRIGHTNESS, TERN(CASE_LIGHT_USE_NEOPIXEL, true, pin_is_pwm())); }
+  bool pin_is_pwm() { return TERN0(NEED_CASE_LIGHT_PIN, PWM_PIN(CASE_LIGHT_PIN)); }
+  bool has_brightness() { return TERN0(CASELIGHT_USES_BRIGHTNESS, TERN(CASE_LIGHT_USE_NEOPIXEL, true, pin_is_pwm())); }
 
   void init();
 
@@ -45,8 +45,8 @@ public:
   void caseWakeup();
   
   void update(const bool sflag);
-  static void update_brightness();
-  static void update_enabled();
+  void update_brightness();
+  void update_enabled();
 
   #if ENABLED(CASE_LIGHT_IS_COLOR_LED)
     private:

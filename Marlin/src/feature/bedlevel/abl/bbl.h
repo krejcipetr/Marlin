@@ -46,24 +46,24 @@ private:
      xy_pos_t grid_spacing_virt;
      xy_float_t grid_factor_virt;
 
-     float bed_level_virt_coord(const uint8_t x, const uint8_t y);
-     float bed_level_virt_cmr(const float p[4], const uint8_t i, const float t);
-     float bed_level_virt_2cmr(const uint8_t x, const uint8_t y, const_float_t tx, const_float_t ty);
-     void bed_level_virt_interpolate();
+    float virt_coord(const uint8_t x, const uint8_t y);
+    float virt_cmr(const float p[4], const uint8_t i, const float t);
+    float virt_2cmr(const uint8_t x, const uint8_t y, const_float_t tx, const_float_t ty);
+    void subdivide_mesh();
   #endif
 
 public:
-   void reset();
-   void set_grid(const xy_pos_t& _grid_spacing, const xy_pos_t& _grid_start, const xy_uint8_t& _grid_points);
-   void extrapolate_unprobed_bed_level();
-   void print_leveling_grid(const bed_mesh_t* _z_values = NULL);
-   void refresh_bed_level();
-   bool has_mesh() { return !!grid_spacing.x; }
-   bool mesh_is_valid() { return has_mesh(); }
-   float get_mesh_x(const uint8_t i) { return grid_start.x + i * grid_spacing.x; }
-   float get_mesh_y(const uint8_t j) { return grid_start.y + j * grid_spacing.y; }
-   float get_z_correction(const xy_pos_t &raw);
-   constexpr float get_z_offset() { return 0.0f; }
+  void reset();
+  void set_grid(const xy_pos_t& _grid_spacing, const xy_pos_t& _grid_start, const xy_uint8_t& _grid_points);
+  void extrapolate_unprobed_bed_level();
+  void print_leveling_grid(const bed_mesh_t *_z_values=nullptr);
+  void refresh_bed_level();
+  bool has_mesh() { return !!grid_spacing.x; }
+  bool mesh_is_valid() { return has_mesh(); }
+  float get_mesh_x(const uint8_t i) { return grid_start.x + i * grid_spacing.x; }
+  float get_mesh_y(const uint8_t j) { return grid_start.y + j * grid_spacing.y; }
+  float get_z_correction(const xy_pos_t &raw);
+  constexpr float get_z_offset() { return 0.0f; }
 
   #if IS_CARTESIAN && DISABLED(SEGMENT_LEVELED_MOVES)
      void line_to_destination(const_feedRate_t scaled_fr_mm_s, uint16_t x_splits=0xFFFF, uint16_t y_splits=0xFFFF);

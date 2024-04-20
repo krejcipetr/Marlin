@@ -28,8 +28,21 @@
 
 CaseLight caselight;
 
-void  CaseLight::caseSleep() { sleepState = on; brightness=255; on = false; update(on); }
-void  CaseLight::caseWakeup() {on = sleepState; brightness=255; update(on); }
+void  CaseLight::caseSleep() {
+	sleepState = on;
+#if CASELIGHT_USES_BRIGHTNESS
+	brightness=255; on = false;
+#endif
+	update(on);
+}
+
+void  CaseLight::caseWakeup() {
+	on = sleepState;
+#if CASELIGHT_USES_BRIGHTNESS
+	brightness=255;
+#endif
+	update(on);
+}
 
 void CaseLight::update_brightness() { caselight.update(false); }
 void CaseLight::update_enabled()    { caselight.update(true);  }
