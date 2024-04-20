@@ -781,22 +781,8 @@
  */
 #define MAX_BED_POWER 190 // limits duty cycle to bed; 255=full current
 
-/**
- * PID Bed Heating
- *
- * The PID frequency will be the same as the extruder PWM.
- * If PID_dT is the default, and correct for the hardware/configuration, that means 7.689Hz,
- * which is fine for driving a square wave into a resistive load and does not significantly
- * impact FET heating. This also works fine on a Fotek SSR-10DA Solid State Relay into a 250W
- * heater. If your configuration is significantly different than this and you don't understand
- * the issues involved, don't use bed PID until someone else verifies that your hardware works.
- *
- * With this option disabled, bang-bang will be used. BED_LIMIT_SWITCHING enables hysteresis.
- */
-//#define PIDTEMPBED
-
 #if ENABLED(PIDTEMPBED)
-  #define MIN_BED_POWER 10
+  #define MIN_BED_POWER 0
   //#define PID_BED_DEBUG // Print Bed PID debug data to the serial port.
 
   // 120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)

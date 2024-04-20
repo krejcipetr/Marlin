@@ -52,6 +52,10 @@ public:
     private:
        LEDColor color;
   #endif
+
 };
 
 extern CaseLight caselight;
+
+extern void caselight_updatebrightness();
+extern void caselight_updateenabled();

@@ -44,8 +44,11 @@ void  CaseLight::caseWakeup() {
 	update(on);
 }
 
-void CaseLight::update_brightness() { caselight.update(false); }
-void CaseLight::update_enabled()    { caselight.update(true);  }
+void CaseLight::update_brightness() { update(false); }
+void CaseLight::update_enabled()    { update(true);  }
+
+void caselight_updatebrightness() { caselight.update_brightness(); }
+void caselight_updateenabled()    { caselight.update_enabled();  }
 
 void CaseLight::init() {
 	on = CASE_LIGHT_DEFAULT_ON;
@@ -118,5 +121,7 @@ void CaseLight::update(const bool sflag) {
     if (leds.lights_on) leds.update(); else leds.set_off();
   #endif
 }
+
+
 
 #endif // CASE_LIGHT_ENABLE

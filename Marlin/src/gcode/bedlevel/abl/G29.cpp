@@ -108,9 +108,9 @@ public:
   #if ENABLED(AUTO_BED_LEVELING_LINEAR)
     grid_count_t abl_points;
   #elif ENABLED(AUTO_BED_LEVELING_3POINT)
-    static constexpr grid_count_t abl_points = 3;
+    grid_count_t abl_points = 3;
   #elif ABL_USES_GRID
-    static constexpr grid_count_t abl_points = GRID_MAX_POINTS;
+    grid_count_t abl_points;
   #endif
 
   #if ABL_USES_GRID
@@ -140,11 +140,6 @@ public:
     #endif
   #endif
 };
-
-#if ABL_USES_GRID && ANY(AUTO_BED_LEVELING_3POINT, AUTO_BED_LEVELING_BILINEAR)
-  constexpr xy_uint8_t G29_State::grid_points;
-  constexpr grid_count_t G29_State::abl_points;
-#endif
 
 /**
  * G29: Detailed Z probe, probes the bed at 3 or more points.

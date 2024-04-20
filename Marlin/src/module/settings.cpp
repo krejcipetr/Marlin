@@ -1957,7 +1957,7 @@ void MarlinSettings::postprocess() {
         #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
           if (grid_max_x == (GRID_MAX_POINTS_X) && grid_max_y == (GRID_MAX_POINTS_Y)) {
             if (!validating) set_bed_leveling_enabled(false);
-            bedlevel.set_grid(spacing, start);
+            bedlevel.set_grid(spacing, start, {grid_max_x,grid_max_y});
             EEPROM_READ(bedlevel.z_values);            // 9 to 256 floats
           }
           else if (grid_max_x > (GRID_MAX_POINTS_X) || grid_max_y > (GRID_MAX_POINTS_Y)) {
