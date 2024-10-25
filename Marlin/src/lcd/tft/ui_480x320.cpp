@@ -35,7 +35,9 @@
 #include "../../module/printcounter.h"
 #include "../../module/planner.h"
 #include "../../module/motion.h"
-#include "../../feature/runout.h"
+#if HAS_FILAMENT_SENSOR
+	#include "../../feature/runout.h"
+#endif
 #include "../../feature/caselight.h"
 
 #if DISABLED(LCD_PROGRESS_BAR) && ALL(FILAMENT_LCD_DISPLAY, HAS_MEDIA)
