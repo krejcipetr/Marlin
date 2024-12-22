@@ -670,10 +670,10 @@
 
 #define BANG_MAX 127     // Limits current to nozzle while in bang-bang mode; 255=full current
 #define PID_MAX 255      // Limits current to nozzle while PID is active (see PID_FUNCTIONAL_RANGE below); 255=full current
-#define PID_K1 0.25       // Smoothing factor within any PID loop
+#define PID_K1 0.95       // Smoothing factor within any PID loop
 
 #if ENABLED(PIDTEMP)
-  #define PID_DEBUG             // Print PID debug data to the serial port. Use 'M303 D' to toggle activation.
+  //#define PID_DEBUG             // Print PID debug data to the serial port. Use 'M303 D' to toggle activation.
   //#define PID_PARAMS_PER_HOTEND // Use separate PID parameters for each extruder (useful for mismatched extruders)
                                   // Set/get with G-code: M301 E[extruder number, 0-2]
 
@@ -687,17 +687,6 @@
 	#define DEFAULT_Kp 15.30
   	#define DEFAULT_Ki 0.85
     #define DEFAULT_Kd 56.55
-
-// 265
-// Kp: 13.06 Ki: 2.40 Kd: 17.76
-// 255
-// Kp: 26.88 Ki: 5.09 Kd: 35.48
-// 245
-// Kp: 29.02 Ki: 5.41 Kd: 38.89
-// 235
-// Kp: 20.95 Ki: 3.27 Kd: 33.52
-// 225
-// 215
 
   #endif
 #else
